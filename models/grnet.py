@@ -18,21 +18,21 @@ class RandomPointSampling(torch.nn.Module):
 
     def forward(self, pred_cloud, partial_cloud=None):
         if partial_cloud is not None:
-            pred_cloud = torch.cat([partial_cloud, pred_cloud], dim=1)
+            pred_cloud = torch.cat([partial_cloud, pred_cloud], dim=1) #batch_size * (262144+2048) * 3
 
-        _ptcloud = torch.split(pred_cloud, 1, dim=0)
+        _ptcloud = torch.split(pred_cloud, 1, dim=0) #以batch为单位分开，用于迭代
         ptclouds = []
         for p in _ptcloud:
             non_zeros = torch.sum(p, dim=2).ne(0)
-            p = p[non_zeros].unsqueeze(dim=0)
+            p = p[non_zeros].unsqueeze(dim=0) #过滤掉全是0的点
             n_pts = p.size(1)
-            if n_pts < self.n_points:
+            if n_pts < self.n_points:  #随机取N_INPUT_POINTS（2048）个点
                 rnd_idx = torch.cat([torch.randint(0, n_pts, (self.n_points, ))])
             else:
                 rnd_idx = torch.randperm(p.size(1))[:self.n_points]
             ptclouds.append(p[:, rnd_idx, :])
 
-        return torch.cat(ptclouds, dim=0).contiguous()
+        return torch.cat(ptclouds, dim=0).contiguous()  #重新拼接到同一个张量中
 
 
 class GRNet(torch.nn.Module):
@@ -136,7 +136,7 @@ class GRNet(torch.nn.Module):
         sparse_cloud = self.gridding_rev(pt_features_64_r.squeeze(dim=1))
         # print(sparse_cloud.size())      # torch.Size([batch_size, 262144, 3])
         sparse_cloud = self.point_sampling(sparse_cloud, partial_cloud)
-        # print(sparse_cloud.size())      # torch.Size([batch_size, 2048, 3])
+        # print(sparse_cloud.size())      # torch.Size([batch_size, 2048, 3])   ####后续目标为 为每个sparse cloud中的点学习一个offset
         point_features_32 = self.feature_sampling(sparse_cloud, pt_features_32_r).view(-1, 2048, 256)
         # print(point_features_32.size()) # torch.Size([batch_size, 2048, 256])
         point_features_16 = self.feature_sampling(sparse_cloud, pt_features_16_r).view(-1, 2048, 512)
@@ -151,7 +151,7 @@ class GRNet(torch.nn.Module):
         # print(point_features.size())    # torch.Size([batch_size, 2048, 448])
         point_features = self.fc13(point_features)
         # print(point_features.size())    # torch.Size([batch_size, 2048, 112])
-        point_offset = self.fc14(point_features).view(-1, 16384, 3)
+        point_offset = self.fc14(point_features).view(-1, 16384, 3)  #对训练得到的稀疏点云的每个点学习一个offset，然后加到稀疏点云上，实现一个点变8个点
         # print(point_features.size())    # torch.Size([batch_size, 16384, 3])
         dense_cloud = sparse_cloud.unsqueeze(dim=2).repeat(1, 1, 8, 1).view(-1, 16384, 3) + point_offset
         # print(dense_cloud.size())       # torch.Size([batch_size, 16384, 3])

@@ -30,6 +30,7 @@ def main():
         model_id = ids[1]
         idx = len(ids) - 3
 
+        #创建文件夹
         partial_output_folder = os.path.join(output_base_folder, 'partial', category_id, model_id)
         complete_output_folder = os.path.join(output_base_folder, 'complete', category_id)
         if not os.path.exists(partial_output_folder):
@@ -38,9 +39,9 @@ def main():
             os.makedirs(complete_output_folder)
 
         p = open3d.geometry.PointCloud()
-        p.points = open3d.utility.Vector3dVector(d[1].astype(np.float32))
+        p.points = open3d.utility.Vector3dVector(d[1].astype(np.float32)) #写入数据
         open3d.io.write_point_cloud(os.path.join(partial_output_folder, '%02d.pcd' % idx), p)
-        p.points = open3d.utility.Vector3dVector(d[2].astype(np.float32))
+        p.points = open3d.utility.Vector3dVector(d[2].astype(np.float32)) #写入数据
         open3d.io.write_point_cloud(os.path.join(complete_output_folder, '%s.pcd' % model_id), p)
 
 

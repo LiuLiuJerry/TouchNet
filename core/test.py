@@ -41,7 +41,7 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
             grnet = torch.nn.DataParallel(grnet).cuda()
 
         logging.info('Recovering from %s ...' % (cfg.CONST.WEIGHTS))
-        checkpoint = torch.load(cfg.CONST.WEIGHTS)
+        checkpoint = torch.load(cfg.CONST.WEIGHTS) #加载checkpoint
         grnet.load_state_dict(checkpoint['grnet'])
 
     # Switch models to evaluation mode
@@ -67,7 +67,7 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
             for k, v in data.items():
                 data[k] = utils.helpers.var_or_cuda(v)
 
-            sparse_ptcloud, dense_ptcloud = grnet(data)
+            sparse_ptcloud, dense_ptcloud = grnet(data)  #获得计算数据
             sparse_loss = chamfer_dist(sparse_ptcloud, data['gtcloud'])
             dense_loss = chamfer_dist(dense_ptcloud, data['gtcloud'])
             test_losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000])
@@ -81,13 +81,13 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
             if test_writer is not None and model_idx < 3:
                 sparse_ptcloud = sparse_ptcloud.squeeze().cpu().numpy()
                 sparse_ptcloud_img = utils.helpers.get_ptcloud_img(sparse_ptcloud)
-                test_writer.add_image('Model%02d/SparseReconstruction' % model_idx, sparse_ptcloud_img, epoch_idx)
+                test_writer.add_image('Model%02d/SparseReconstruction' % model_idx, sparse_ptcloud_img, epoch_idx, dataformats='HWC')
                 dense_ptcloud = dense_ptcloud.squeeze().cpu().numpy()
                 dense_ptcloud_img = utils.helpers.get_ptcloud_img(dense_ptcloud)
-                test_writer.add_image('Model%02d/DenseReconstruction' % model_idx, dense_ptcloud_img, epoch_idx)
+                test_writer.add_image('Model%02d/DenseReconstruction' % model_idx, dense_ptcloud_img, epoch_idx, dataformats='HWC')
                 gt_ptcloud = data['gtcloud'].squeeze().cpu().numpy()
                 gt_ptcloud_img = utils.helpers.get_ptcloud_img(gt_ptcloud)
-                test_writer.add_image('Model%02d/GroundTruth' % model_idx, gt_ptcloud_img, epoch_idx)
+                test_writer.add_image('Model%02d/GroundTruth' % model_idx, gt_ptcloud_img, epoch_idx, dataformats='HWC')
 
             logging.info('Test[%d/%d] Taxonomy = %s Sample = %s Losses = %s Metrics = %s' %
                          (model_idx + 1, n_samples, taxonomy_id, model_id, ['%.4f' % l for l in test_losses.val()

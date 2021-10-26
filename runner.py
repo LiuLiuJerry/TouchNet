@@ -32,7 +32,8 @@ def get_args_from_command_line():
     parser.add_argument('--gpu', dest='gpu_id', help='GPU device to use', default=cfg.CONST.DEVICE, type=str)
     parser.add_argument('--test', dest='test', help='Test neural networks', action='store_true')
     parser.add_argument('--inference', dest='inference', help='Inference for benchmark', action='store_true')
-    parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default=None)
+    #parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default='/home/jerry/codes/GRNet/output/checkpoints/GRNet-ShapeNet.pth') 
+    parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default='/home/jerry/codes/GRNet/output/checkpoints/2021-10-26T10:22:19.721951/ckpt-epoch-050.pth') 
     args = parser.parse_args()
     return args
 
@@ -55,7 +56,7 @@ def main():
 
     # Start train/test process
     if not args.test and not args.inference:
-        train_net(cfg)
+        train_net(cfg) #进行训练
     else:
         if 'WEIGHTS' not in cfg.CONST or not os.path.exists(cfg.CONST.WEIGHTS):
             logging.error('Please specify the file path of checkpoint.')

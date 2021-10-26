@@ -31,6 +31,7 @@ def train_net(cfg):
     # Set up data loader
     train_dataset_loader = utils.data_loaders.DATASET_LOADER_MAPPING[cfg.DATASET.TRAIN_DATASET](cfg)
     test_dataset_loader = utils.data_loaders.DATASET_LOADER_MAPPING[cfg.DATASET.TEST_DATASET](cfg)
+    #读取点云
     train_data_loader = torch.utils.data.DataLoader(dataset=train_dataset_loader.get_dataset(
         utils.data_loaders.DatasetSubset.TRAIN),
                                                     batch_size=cfg.TRAIN.BATCH_SIZE,
@@ -62,6 +63,7 @@ def train_net(cfg):
     grnet = GRNet(cfg)
     grnet.apply(utils.helpers.init_weights)
     logging.debug('Parameters in GRNet: %d.' % utils.helpers.count_parameters(grnet))
+
 
     # Move the network to GPU if possible
     if torch.cuda.is_available():
@@ -103,14 +105,14 @@ def train_net(cfg):
         grnet.train()
 
         batch_end_time = time()
-        n_batches = len(train_data_loader)
-        for batch_idx, (taxonomy_ids, model_ids, data) in enumerate(train_data_loader):
+        n_batches = len(train_data_loader) #每个epoch都将所有数据分为不同batch
+        for batch_idx, (taxonomy_ids, model_ids, data) in enumerate(train_data_loader): #每次取一个batch
             data_time.update(time() - batch_end_time)
             for k, v in data.items():
                 data[k] = utils.helpers.var_or_cuda(v)
 
             sparse_ptcloud, dense_ptcloud = grnet(data)
-            sparse_loss = chamfer_dist(sparse_ptcloud, data['gtcloud'])
+            sparse_loss = chamfer_dist(sparse_ptcloud, data['gtcloud'])  #稀疏点云和稠密点云一起算损失
             dense_loss = chamfer_dist(dense_ptcloud, data['gtcloud'])
             _loss = sparse_loss + dense_loss
             losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000])
@@ -119,7 +121,7 @@ def train_net(cfg):
             _loss.backward()
             grnet_optimizer.step()
 
-            n_itr = (epoch_idx - 1) * n_batches + batch_idx
+            n_itr = (epoch_idx - 1) * n_batches + batch_idx  #迭代次数
             train_writer.add_scalar('Loss/Batch/Sparse', sparse_loss.item() * 1000, n_itr)
             train_writer.add_scalar('Loss/Batch/Dense', dense_loss.item() * 1000, n_itr)
 
@@ -129,7 +131,7 @@ def train_net(cfg):
                          (epoch_idx, cfg.TRAIN.N_EPOCHS, batch_idx + 1, n_batches, batch_time.val(), data_time.val(),
                           ['%.4f' % l for l in losses.val()]))
 
-        grnet_lr_scheduler.step()
+        grnet_lr_scheduler.step() #更新学习李
         epoch_end_time = time()
         train_writer.add_scalar('Loss/Epoch/Sparse', losses.avg(0), epoch_idx)
         train_writer.add_scalar('Loss/Epoch/Dense', losses.avg(1), epoch_idx)
@@ -137,7 +139,7 @@ def train_net(cfg):
             '[Epoch %d/%d] EpochTime = %.3f (s) Losses = %s' %
             (epoch_idx, cfg.TRAIN.N_EPOCHS, epoch_end_time - epoch_start_time, ['%.4f' % l for l in losses.avg()]))
 
-        # Validate the current model
+        # Validate the current model 每个epoch验证一次
         metrics = test_net(cfg, epoch_idx, val_data_loader, val_writer, grnet)
 
         # Save ckeckpoints
