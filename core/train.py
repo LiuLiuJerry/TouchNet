@@ -23,6 +23,8 @@ from models.grnet import GRNet
 from utils.average_meter import AverageMeter
 from utils.metrics import Metrics
 
+#Jerry
+from utils.loss import get_Geometric_Loss, VLossFlag
 
 def train_net(cfg):
     # Enable the inbuilt cudnn auto-tuner to find the best algorithm to use
@@ -100,7 +102,10 @@ def train_net(cfg):
 
         batch_time = AverageMeter()
         data_time = AverageMeter()
-        losses = AverageMeter(['SparseLoss', 'DenseLoss'])
+        if cfg.v_flag ==VLossFlag.INITIAL_VERSION:
+            losses = AverageMeter(['SparseLoss', 'DenseLoss'])
+        elif cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
+            losses = AverageMeter(['SparseLoss', 'DenseLoss', 'DensityLoss'])
 
         grnet.train()
 
@@ -114,8 +119,15 @@ def train_net(cfg):
             sparse_ptcloud, dense_ptcloud = grnet(data)
             sparse_loss = chamfer_dist(sparse_ptcloud, data['gtcloud'])  #稀疏点云和稠密点云一起算损失
             dense_loss = chamfer_dist(dense_ptcloud, data['gtcloud'])
-            _loss = sparse_loss + dense_loss
-            losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000])
+            
+            #Jerry
+            if cfg.v_flag == VLossFlag.INITIAL_VERSION:
+                _loss = sparse_loss + dense_loss
+                losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000])
+            elif cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
+                _d_loss,_shape_loss, _density_loss = get_Geometric_Loss(sparse_ptcloud, data['gtcloud'])
+                _loss = sparse_loss + dense_loss + _density_loss
+                losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000, _density_loss*1000])
 
             grnet.zero_grad()
             _loss.backward()
@@ -124,6 +136,8 @@ def train_net(cfg):
             n_itr = (epoch_idx - 1) * n_batches + batch_idx  #迭代次数
             train_writer.add_scalar('Loss/Batch/Sparse', sparse_loss.item() * 1000, n_itr)
             train_writer.add_scalar('Loss/Batch/Dense', dense_loss.item() * 1000, n_itr)
+            if cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
+                train_writer.add_scalar("Loss/Batch/Density", _density_loss.item()*1000, n_itr)
 
             batch_time.update(time() - batch_end_time)
             batch_end_time = time()
@@ -131,10 +145,13 @@ def train_net(cfg):
                          (epoch_idx, cfg.TRAIN.N_EPOCHS, batch_idx + 1, n_batches, batch_time.val(), data_time.val(),
                           ['%.4f' % l for l in losses.val()]))
 
+
         grnet_lr_scheduler.step() #更新学习李
         epoch_end_time = time()
         train_writer.add_scalar('Loss/Epoch/Sparse', losses.avg(0), epoch_idx)
         train_writer.add_scalar('Loss/Epoch/Dense', losses.avg(1), epoch_idx)
+        if cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
+             train_writer.add_scalar('Loss/Epoch/Density', losses.avg(2), epoch_idx)
         logging.info(
             '[Epoch %d/%d] EpochTime = %.3f (s) Losses = %s' %
             (epoch_idx, cfg.TRAIN.N_EPOCHS, epoch_end_time - epoch_start_time, ['%.4f' % l for l in losses.avg()]))

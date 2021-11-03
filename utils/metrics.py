@@ -47,7 +47,7 @@ class Metrics(object):
         return [i['name'] for i in _items]
 
     @classmethod
-    def _get_f_score(cls, pred, gt, th=0.01):
+    def _get_f_score(cls, pred, gt, th=0.03):
         """References: https://github.com/lmb-freiburg/what3d/blob/master/util.py"""
         pred = cls._get_open3d_ptcloud(pred)
         gt = cls._get_open3d_ptcloud(gt)

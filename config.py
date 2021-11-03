@@ -6,6 +6,8 @@
 # @Email:  cshzxie@gmail.com
 
 from easydict import EasyDict as edict
+#Jerry
+from utils.loss import VLossFlag
 
 __C                                              = edict()
 cfg                                              = __C
@@ -49,6 +51,8 @@ __C.DATASET                                      = edict()
 __C.DATASET.TRAIN_DATASET                        = 'ShapeNetTouch'
 __C.DATASET.TEST_DATASET                         = 'ShapeNetTouch'
 
+__C.v_flag = VLossFlag.DENSITY_LOSS_VERSION
+
 #
 # Constants
 #
@@ -85,7 +89,7 @@ __C.NETWORK.GRIDDING_LOSS_ALPHAS                 = [0.1]
 #
 __C.TRAIN                                        = edict()
 __C.TRAIN.BATCH_SIZE                             = 4 #32
-__C.TRAIN.N_EPOCHS                               = 50#150
+__C.TRAIN.N_EPOCHS                               = 200#150
 __C.TRAIN.SAVE_FREQ                              = 25
 __C.TRAIN.LEARNING_RATE                          = 1e-4
 __C.TRAIN.LR_MILESTONES                          = [50]

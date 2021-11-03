@@ -13,6 +13,8 @@ import open3d
 import os
 import sys
 
+from plyfile import PlyData, PlyElement
+
 from io import BytesIO
 
 # References: http://confluence.sensetime.com/pages/viewpage.action?pageId=44650315
@@ -53,6 +55,8 @@ class IO:
             return cls._write_pcd(file_path, file_content)
         elif file_extension in ['.h5']:
             return cls._write_h5(file_path, file_content)
+        elif file_extension in ['.ply']:
+            return cls._write_ply(file_path, file_content)
         else:
             raise Exception('Unsupported file extension: %s' % file_extension)
 
@@ -135,3 +139,13 @@ class IO:
     def _write_h5(cls, file_path, file_content):
         with h5py.File(file_path, 'w') as f:
             f.create_dataset('data', data=file_content)
+
+    @classmethod
+    def _write_ply(cls, file_path, file_content):
+        with h5py.File(file_path, 'w') as f:
+            f.create_dataset('data', data=file_content)
+        points = file_content
+        points = [(points[i,0], points[i,1], points[i,2]) for i in range(points.shape[0])]
+        vertex = np.array(points, dtype=[('x', 'f4'), ('y', 'f4'),('z', 'f4')])
+        el = PlyElement.describe(vertex, 'vertex', comments=['vertices'])
+        PlyData([el]).write(file_path)

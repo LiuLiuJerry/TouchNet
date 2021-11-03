@@ -26,14 +26,18 @@ from core.train import train_net
 from core.test import test_net
 from core.inference import inference_net
 
+#Jerry
+from utils.loss import VLossFlag
+
 
 def get_args_from_command_line():
     parser = argparse.ArgumentParser(description='The argument parser of R2Net runner')
     parser.add_argument('--gpu', dest='gpu_id', help='GPU device to use', default=cfg.CONST.DEVICE, type=str)
-    parser.add_argument('--test', dest='test', help='Test neural networks', action='store_true')
+    parser.add_argument('--test', dest='test', help='Test neural networks', action='store_true', default=True)
     parser.add_argument('--inference', dest='inference', help='Inference for benchmark', action='store_true')
     #parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default='/home/jerry/codes/GRNet/output/checkpoints/GRNet-ShapeNet.pth') 
-    parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default='/home/jerry/codes/GRNet/output/checkpoints/2021-10-26T10:22:19.721951/ckpt-epoch-050.pth') 
+    parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default='/home/jerry/codes/GRNet/output/checkpoints/ckpt-epoch-025.pth') 
+    parser.add_argument('--save', dest="save", help='save results during test', default=True) 
     args = parser.parse_args()
     return args
 
@@ -46,6 +50,7 @@ def main():
         cfg.CONST.DEVICE = args.gpu_id
     if args.weights is not None:
         cfg.CONST.WEIGHTS = args.weights
+
 
     # Print config
     print('Use config:')
@@ -63,7 +68,7 @@ def main():
             sys.exit(2)
 
         if args.test:
-            test_net(cfg)
+            test_net(cfg, b_save = args.save)
         else:
             inference_net(cfg)
 

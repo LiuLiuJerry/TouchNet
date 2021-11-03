@@ -17,8 +17,13 @@ from models.grnet import GRNet
 from utils.average_meter import AverageMeter
 from utils.metrics import Metrics
 
+import open3d
 
-def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=None):
+#Jerry
+from utils.loss import get_Geometric_Loss, VLossFlag
+
+
+def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=None, b_save=False):
     # Enable the inbuilt cudnn auto-tuner to find the best algorithm to use
     torch.backends.cudnn.benchmark = True
 
@@ -54,7 +59,11 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
 
     # Testing loop
     n_samples = len(test_data_loader)
-    test_losses = AverageMeter(['SparseLoss', 'DenseLoss'])
+
+    if cfg.v_flag ==VLossFlag.INITIAL_VERSION:
+        test_losses = AverageMeter(['SparseLoss', 'DenseLoss'])
+    elif cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
+        test_losses = AverageMeter(['SparseLoss', 'DenseLoss', 'DensityLoss'])
     test_metrics = AverageMeter(Metrics.names())
     category_metrics = dict()
 
@@ -70,7 +79,15 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
             sparse_ptcloud, dense_ptcloud = grnet(data)  #获得计算数据
             sparse_loss = chamfer_dist(sparse_ptcloud, data['gtcloud'])
             dense_loss = chamfer_dist(dense_ptcloud, data['gtcloud'])
-            test_losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000])
+
+            #Jerry
+            if cfg.v_flag == VLossFlag.INITIAL_VERSION:
+                test_losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000])
+            elif cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
+                _d_loss,_shape_loss, _density_loss = get_Geometric_Loss(sparse_ptcloud, data['gtcloud'])
+                test_losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000, _density_loss*1000])
+
+
             _metrics = Metrics.get(dense_ptcloud, data['gtcloud'])
             test_metrics.update(_metrics)
 
@@ -88,10 +105,23 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
                 gt_ptcloud = data['gtcloud'].squeeze().cpu().numpy()
                 gt_ptcloud_img = utils.helpers.get_ptcloud_img(gt_ptcloud)
                 test_writer.add_image('Model%02d/GroundTruth' % model_idx, gt_ptcloud_img, epoch_idx, dataformats='HWC')
+                #Jerry
+                pt_ptcloud = data['partial_cloud'].squeeze().cpu().numpy()
+                pt_ptcloud_img = utils.helpers.get_ptcloud_img(pt_ptcloud)
+                test_writer.add_image('Model%02d/Input' % model_idx, pt_ptcloud_img, epoch_idx, dataformats='HWC')
 
             logging.info('Test[%d/%d] Taxonomy = %s Sample = %s Losses = %s Metrics = %s' %
                          (model_idx + 1, n_samples, taxonomy_id, model_id, ['%.4f' % l for l in test_losses.val()
                                                                             ], ['%.4f' % m for m in _metrics]))
+            if b_save:
+                import os
+                path_save = "output/models/%s/%s/"%(taxonomy_id, model_id)
+                if not os.path.exists(path_save):
+                    os.makedirs(path_save)
+                utils.io.IO.put(path_save + "output.ply", dense_ptcloud.squeeze().cpu().numpy())
+                utils.io.IO.put(path_save + "gt.ply", data['gtcloud'].squeeze().cpu().numpy())
+                utils.io.IO.put(path_save + "partial.ply", data['partial_cloud'].squeeze().cpu().numpy())
+                print("test point cloud saved: %s"%(path_save + "%.2d.ply"%(model_idx%4)))
 
     # Print testing results
     print('============================ TEST RESULTS ============================')
@@ -101,7 +131,7 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
         print(metric, end='\t')
     print()
 
-    for taxonomy_id in category_metrics:
+    for taxonomy_id in category_metrics: #打印所有度量方式
         print(taxonomy_id, end='\t')
         print(category_metrics[taxonomy_id].count(0), end='\t')
         for value in category_metrics[taxonomy_id].avg():
@@ -117,6 +147,8 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
     if test_writer is not None:
         test_writer.add_scalar('Loss/Epoch/Sparse', test_losses.avg(0), epoch_idx)
         test_writer.add_scalar('Loss/Epoch/Dense', test_losses.avg(1), epoch_idx)
+        if cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
+            test_writer.add_scalar('Loss/Epoch/Density', test_losses.avg(2), epoch_idx)
         for i, metric in enumerate(test_metrics.items):
             test_writer.add_scalar('Metric/%s' % metric, test_metrics.avg(i), epoch_idx)
 
