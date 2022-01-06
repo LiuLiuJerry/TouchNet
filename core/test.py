@@ -23,7 +23,7 @@ import open3d
 from utils.loss import get_Geometric_Loss, VLossFlag
 
 
-def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=None, b_save=False):
+def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=None):
     # Enable the inbuilt cudnn auto-tuner to find the best algorithm to use
     torch.backends.cudnn.benchmark = True
 
@@ -84,7 +84,7 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
             if cfg.v_flag == VLossFlag.INITIAL_VERSION:
                 test_losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000])
             elif cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
-                _d_loss,_shape_loss, _density_loss = get_Geometric_Loss(sparse_ptcloud, data['gtcloud'])
+                _d_loss,_shape_loss, _density_loss = get_Geometric_Loss(dense_ptcloud, data['gtcloud'])
                 test_losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000, _density_loss*1000])
 
 
@@ -96,11 +96,11 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
             category_metrics[taxonomy_id].update(_metrics)
 
             if test_writer is not None and model_idx < 3:
-                sparse_ptcloud = sparse_ptcloud.squeeze().cpu().numpy()
-                sparse_ptcloud_img = utils.helpers.get_ptcloud_img(sparse_ptcloud)
+                sparse_ptcloud_cpu = sparse_ptcloud.squeeze().cpu().numpy()
+                sparse_ptcloud_img = utils.helpers.get_ptcloud_img(sparse_ptcloud_cpu)
                 test_writer.add_image('Model%02d/SparseReconstruction' % model_idx, sparse_ptcloud_img, epoch_idx, dataformats='HWC')
-                dense_ptcloud = dense_ptcloud.squeeze().cpu().numpy()
-                dense_ptcloud_img = utils.helpers.get_ptcloud_img(dense_ptcloud)
+                dense_ptcloud_cpu = dense_ptcloud.squeeze().cpu().numpy()
+                dense_ptcloud_img = utils.helpers.get_ptcloud_img(dense_ptcloud_cpu)
                 test_writer.add_image('Model%02d/DenseReconstruction' % model_idx, dense_ptcloud_img, epoch_idx, dataformats='HWC')
                 gt_ptcloud = data['gtcloud'].squeeze().cpu().numpy()
                 gt_ptcloud_img = utils.helpers.get_ptcloud_img(gt_ptcloud)
@@ -113,15 +113,17 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
             logging.info('Test[%d/%d] Taxonomy = %s Sample = %s Losses = %s Metrics = %s' %
                          (model_idx + 1, n_samples, taxonomy_id, model_id, ['%.4f' % l for l in test_losses.val()
                                                                             ], ['%.4f' % m for m in _metrics]))
-            if b_save:
+            if cfg.b_save:
                 import os
-                path_save = "output/models/%s/%s/"%(taxonomy_id, model_id)
+                path_save = "output/models/test/%s/%s/"%(taxonomy_id, model_id)
                 if not os.path.exists(path_save):
                     os.makedirs(path_save)
-                utils.io.IO.put(path_save + "output.ply", dense_ptcloud.squeeze().cpu().numpy())
-                utils.io.IO.put(path_save + "gt.ply", data['gtcloud'].squeeze().cpu().numpy())
-                utils.io.IO.put(path_save + "partial.ply", data['partial_cloud'].squeeze().cpu().numpy())
+                utils.io.IO.put(path_save + "sparse.ply", sparse_ptcloud.cpu().detach().numpy()[0])
+                utils.io.IO.put(path_save + "dense.ply", dense_ptcloud.cpu().detach().numpy()[0])
+                utils.io.IO.put(path_save + "gt.ply", data['gtcloud'].cpu().numpy()[0])
+                utils.io.IO.put(path_save + "partial.ply", data['partial_cloud'].cpu().numpy()[0])
                 print("test point cloud saved: %s"%(path_save + "%.2d.ply"%(model_idx%4)))
+
 
     # Print testing results
     print('============================ TEST RESULTS ============================')

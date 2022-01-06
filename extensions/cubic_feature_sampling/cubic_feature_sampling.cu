@@ -41,9 +41,9 @@ __global__ void cubic_feature_sampling_kernel(
   int stride      = blockDim.x;
   int cub_scale   = scale * scale * scale;
 
-  ptcloud += batch_index * n_pts * 3;
-  cubic_features += batch_index * n_cubic_channels * cub_scale;
-  point_features += batch_index * n_pts * n_vertices * n_cubic_channels;
+  ptcloud += batch_index * n_pts * 3; //点云偏移
+  cubic_features += batch_index * n_cubic_channels * cub_scale; //网格特征偏移
+  point_features += batch_index * n_pts * n_vertices * n_cubic_channels; //
   grid_pt_indexes += batch_index * n_pts * n_vertices;
 
   for (int i = index; i < n_pts; i += stride) {
@@ -122,7 +122,7 @@ std::vector<torch::Tensor> cubic_feature_sampling_cuda_forward(
                                   stream>>>(
     scale, neighborhood_size, n_vertices, n_pts, n_cubic_channels,
     ptcloud.data_ptr<float>(), cubic_features.data_ptr<float>(),
-    point_features.data_ptr<float>(), grid_pt_indexes.data_ptr<int>());
+    point_features.data_ptr<float>(), grid_pt_indexes.data_ptr<int>());  //前面参数输入，最后两个参数输出
 
   cudaError_t err = cudaGetLastError();
   if (err != cudaSuccess) {

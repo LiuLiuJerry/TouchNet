@@ -38,7 +38,7 @@ __global__ void gridding_reverse_kernel(int scale,
   ptcloud += batch_index * n_pts * 3;
   grid += batch_index * n_pts;
 
-  for (int j = index; j < n_pts; j += stride) {
+  for (int j = index; j < n_pts; j += stride) { //第j个网格顶点对应的网格坐标
     int sqr_scale = scale * scale;
     int x_offset  = j / sqr_scale;
     int y_offset  = j % sqr_scale / scale;
@@ -67,13 +67,13 @@ __global__ void gridding_reverse_kernel(int scale,
     }
     for (size_t i = 0; i < 8; ++i) {
       weights[i] /= weights_sum;
-    }
+    } //权重归一化
 
     x_offset -= scale / 2;
     y_offset -= scale / 2;
     z_offset -= scale / 2;
 
-    // clang-format off
+    // clang-format off  每个网格点算一个xyz坐标
     ptcloud[j * 3 + 0] = weights[0] * (x_offset - 1) +
                          weights[1] * (x_offset - 1) +
                          weights[2] * (x_offset - 1) +
@@ -106,7 +106,7 @@ torch::Tensor gridding_reverse_cuda_forward(int scale,
                                             torch::Tensor grid,
                                             cudaStream_t stream) {
   int batch_size = grid.size(0);
-  int n_pts      = scale * scale * scale;
+  int n_pts      = scale * scale * scale; //每个网格产生一个点云顶点
 
   torch::Tensor ptcloud =
     torch::zeros({batch_size, n_pts, 3}, torch::CUDA(torch::kFloat));

@@ -35,8 +35,8 @@ def get_args_from_command_line():
     parser.add_argument('--gpu', dest='gpu_id', help='GPU device to use', default=cfg.CONST.DEVICE, type=str)
     parser.add_argument('--test', dest='test', help='Test neural networks', action='store_true', default=True)
     parser.add_argument('--inference', dest='inference', help='Inference for benchmark', action='store_true')
-    #parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default='/home/jerry/codes/GRNet/output/checkpoints/GRNet-ShapeNet.pth') 
-    parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default='/home/jerry/codes/GRNet/output/checkpoints/ckpt-epoch-025.pth') 
+    #parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default=None) 
+    parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default='/home/jerry/codes/GRNet/output/checkpoints/ckpt-best.pth') 
     parser.add_argument('--save', dest="save", help='save results during test', default=True) 
     args = parser.parse_args()
     return args
@@ -51,6 +51,7 @@ def main():
     if args.weights is not None:
         cfg.CONST.WEIGHTS = args.weights
 
+    cfg.b_save = args.save
 
     # Print config
     print('Use config:')
@@ -68,7 +69,7 @@ def main():
             sys.exit(2)
 
         if args.test:
-            test_net(cfg, b_save = args.save)
+            test_net(cfg)
         else:
             inference_net(cfg)
 

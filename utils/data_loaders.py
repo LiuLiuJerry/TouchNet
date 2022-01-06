@@ -46,7 +46,7 @@ def collate_fn(batch):
     return taxonomy_ids, model_ids, data
 
 
-class Dataset(torch.utils.data.dataset.Dataset):
+class Dataset(torch.utils.data.dataset.Dataset): #重写pytorch的dataset类
     def __init__(self, options, file_list, transforms=None):
         self.options = options
         self.file_list = file_list
@@ -59,8 +59,35 @@ class Dataset(torch.utils.data.dataset.Dataset):
         sample = self.file_list[idx]
         data = {}
         rand_idx = -1
-        if 'n_renderings' in self.options:  #如果有多个点云模型，则随即抽取一个重建模型进行训练
+        if 'n_renderings' in self.options:  #如果有多个点云模型，则随机抽取一个重建模型进行训练
             rand_idx = random.randint(0, self.options['n_renderings'] - 1) if self.options['shuffle'] else 0
+
+        for ri in self.options['required_items']:
+            file_path = sample['%s_path' % ri]
+            if type(file_path) == list:
+                file_path = file_path[rand_idx]
+
+            data[ri] = IO.get(file_path).astype(np.float32)
+
+        if self.transforms is not None:
+            data = self.transforms(data)
+
+        return sample['taxonomy_id'], sample['model_id'], data
+
+
+class Dataset1(torch.utils.data.dataset.Dataset): #重写pytorch的dataset类
+    def __init__(self, options, file_list, transforms=None):
+        self.options = options
+        self.file_list = file_list
+        self.transforms = transforms
+
+    def __len__(self):
+        return len(self.file_list)
+
+    def __getitem__(self, idx):
+        sample = self.file_list[idx]
+        data = {}
+        rand_idx = -1
 
         for ri in self.options['required_items']:
             file_path = sample['%s_path' % ri]
@@ -86,9 +113,9 @@ class ShapeNetDataLoader(object):
 
     def get_dataset(self, subset):
         n_renderings = self.cfg.DATASETS.SHAPENET.N_RENDERINGS if subset == DatasetSubset.TRAIN else 1
-        file_list = self._get_file_list(self.cfg, self._get_subset(subset), n_renderings)
-        transforms = self._get_transforms(self.cfg, subset)
-        return Dataset({
+        file_list = self._get_file_list1(self.cfg, self._get_subset(subset), n_renderings)
+        transforms = self._get_transforms(self.cfg, subset)  #对点云做旋转
+        return Dataset1({
             'n_renderings': n_renderings,
             'required_items': ['partial_cloud', 'gtcloud'],
             'shuffle': subset == DatasetSubset.TRAIN
@@ -155,6 +182,7 @@ class ShapeNetDataLoader(object):
         return file_list
 
 
+
 class ShapeNetDataTouchLoader(object):
     def __init__(self, cfg):
         self.cfg = cfg #参数文件
@@ -166,9 +194,9 @@ class ShapeNetDataTouchLoader(object):
 
     def get_dataset(self, subset):
         n_renderings = self.cfg.DATASETS.SHAPENETTOUCH.N_RENDERINGS if subset == DatasetSubset.TRAIN else 1
-        file_list = self._get_file_list(self.cfg, self._get_subset(subset), n_renderings)
+        file_list = self._get_file_list1(self.cfg, self._get_subset(subset), n_renderings)
         transforms = self._get_transforms(self.cfg, subset)
-        return Dataset({
+        return Dataset1({
             'n_renderings': n_renderings,
             'required_items': ['partial_cloud', 'gtcloud'],
             'shuffle': subset == DatasetSubset.TRAIN
@@ -234,6 +262,33 @@ class ShapeNetDataTouchLoader(object):
         logging.info('Complete collecting files of the dataset. Total files: %d' % len(file_list))
         return file_list
 
+
+    #by Jerry
+    def _get_file_list1(self, cfg, subset, n_renderings=1):
+        """Prepare file list for the dataset"""
+        file_list = []
+
+        for dc in self.dataset_categories:
+            logging.info('Collecting files of Taxonomy [ID=%s, Name=%s]' % (dc['taxonomy_id'], dc['taxonomy_name']))
+            samples = dc[subset]
+
+            for s in tqdm(samples, leave=False):
+                for i in range(n_renderings):
+                    file_list.append({
+                    'taxonomy_id':
+                    dc['taxonomy_id'],
+                    'model_id':
+                    s,
+                    'partial_cloud_path': [
+                        cfg.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH % (subset, dc['taxonomy_id'], s, i)
+                        for i in range(n_renderings)
+                    ],
+                    'gtcloud_path':
+                    cfg.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH % (subset, dc['taxonomy_id'], s),
+                })
+
+        logging.info('Complete collecting files of the dataset. Total files: %d' % len(file_list))
+        return file_list
 
 
 class ShapeNetCarsDataLoader(ShapeNetDataLoader):

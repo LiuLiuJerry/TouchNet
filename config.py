@@ -38,7 +38,7 @@ __C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = './datasets/ShapeNetTouc
 __C.DATASETS.SHAPENETTOUCH.N_RENDERINGS        = 4 #一个物体对应8个rendering？
 __C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到？
 # 参数1：subset（train/val）, 参数2：dc['taxonomy_id'],物体类别的id  参数3：s,数据id  参数：i，可能是同一个物体不同的partial？)
-__C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/jerry/data/ShapeNetCompletion/%s/partial/%s/%s/%.2d.pcd'
+__C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/jerry/data/ShapeNetCompletion/%s/partial/%s/%s/path2048_%.2d.pcd'
 __C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/jerry/data/ShapeNetCompletion/%s/complete/%s/%s/01.pcd'
 
 #
@@ -51,7 +51,8 @@ __C.DATASET                                      = edict()
 __C.DATASET.TRAIN_DATASET                        = 'ShapeNetTouch'
 __C.DATASET.TEST_DATASET                         = 'ShapeNetTouch'
 
-__C.v_flag = VLossFlag.DENSITY_LOSS_VERSION
+__C.v_flag = VLossFlag.INITIAL_VERSION
+__C.b_save = False
 
 #
 # Constants
@@ -88,11 +89,11 @@ __C.NETWORK.GRIDDING_LOSS_ALPHAS                 = [0.1]
 # Train
 #
 __C.TRAIN                                        = edict()
-__C.TRAIN.BATCH_SIZE                             = 4 #32
+__C.TRAIN.BATCH_SIZE                             = 4#4 #32
 __C.TRAIN.N_EPOCHS                               = 200#150
 __C.TRAIN.SAVE_FREQ                              = 25
-__C.TRAIN.LEARNING_RATE                          = 1e-4
-__C.TRAIN.LR_MILESTONES                          = [50]
+__C.TRAIN.LEARNING_RATE                          = 1e-5 #1e-4
+__C.TRAIN.LR_MILESTONES                          = [] # [15,50,80]
 __C.TRAIN.GAMMA                                  = .5
 __C.TRAIN.BETAS                                  = (.9, .999)
 __C.TRAIN.WEIGHT_DECAY                           = 0

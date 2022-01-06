@@ -79,6 +79,7 @@ def train_net(cfg):
     grnet_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(grnet_optimizer,
                                                               milestones=cfg.TRAIN.LR_MILESTONES,
                                                               gamma=cfg.TRAIN.GAMMA)
+    #grnet_lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(grnet_optimizer, gamma=0.95)
 
     # Set up loss functions
     chamfer_dist = ChamferDistance()
@@ -116,16 +117,24 @@ def train_net(cfg):
             for k, v in data.items():
                 data[k] = utils.helpers.var_or_cuda(v)
 
+            import sys
+            b_debug = True if sys.gettrace() else False
+            if b_debug:
+                for  name , params in grnet.named_parameters():
+                    #print('-->name:', name, '-->grad_requirs:', params.requires_grad, '-->grad_value:', params.grad)
+                    print('-->name:', name, '-->grad_requirs:', params.requires_grad, '-->value:', params.values)
+
+
             sparse_ptcloud, dense_ptcloud = grnet(data)
             sparse_loss = chamfer_dist(sparse_ptcloud, data['gtcloud'])  #稀疏点云和稠密点云一起算损失
             dense_loss = chamfer_dist(dense_ptcloud, data['gtcloud'])
             
             #Jerry
             if cfg.v_flag == VLossFlag.INITIAL_VERSION:
-                _loss = sparse_loss + dense_loss
+                _loss = sparse_loss  + dense_loss  #
                 losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000])
             elif cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
-                _d_loss,_shape_loss, _density_loss = get_Geometric_Loss(sparse_ptcloud, data['gtcloud'])
+                _d_loss,_shape_loss, _density_loss = get_Geometric_Loss(dense_ptcloud, data['gtcloud'])
                 _loss = sparse_loss + dense_loss + _density_loss
                 losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000, _density_loss*1000])
 
@@ -133,25 +142,44 @@ def train_net(cfg):
             _loss.backward()
             grnet_optimizer.step()
 
+
             n_itr = (epoch_idx - 1) * n_batches + batch_idx  #迭代次数
             train_writer.add_scalar('Loss/Batch/Sparse', sparse_loss.item() * 1000, n_itr)
             train_writer.add_scalar('Loss/Batch/Dense', dense_loss.item() * 1000, n_itr)
             if cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
                 train_writer.add_scalar("Loss/Batch/Density", _density_loss.item()*1000, n_itr)
 
+
             batch_time.update(time() - batch_end_time)
             batch_end_time = time()
+
+
             logging.info('[Epoch %d/%d][Batch %d/%d] BatchTime = %.3f (s) DataTime = %.3f (s) Losses = %s' %
                          (epoch_idx, cfg.TRAIN.N_EPOCHS, batch_idx + 1, n_batches, batch_time.val(), data_time.val(),
                           ['%.4f' % l for l in losses.val()]))
+        
+            if cfg.b_save and epoch_idx == cfg.TRAIN.N_EPOCHS :
+                for i in range(cfg.TRAIN.BATCH_SIZE):
+                    path_save = "output/models/train/%s/%s/"%(taxonomy_ids[i], model_ids[i])
+                    if not os.path.exists(path_save):
+                        os.makedirs(path_save)
+                    utils.io.IO.put(path_save + "sparse_%d.ply"%(i), sparse_ptcloud.cpu().detach().numpy()[i])
+                    utils.io.IO.put(path_save + "dense_%d.ply"%(i), dense_ptcloud.cpu().detach().numpy()[i])
+                    utils.io.IO.put(path_save + "gt.ply", data['gtcloud'].cpu().detach().numpy()[i])
+                    utils.io.IO.put(path_save + "partial_%d.ply"%(i), data['partial_cloud'].cpu().detach().numpy()[i])
+                    print("train point cloud saved: %s"%(path_save + "ep%.2d_%.2d.ply"%(epoch_idx, i)))
 
 
-        grnet_lr_scheduler.step() #更新学习李
+        grnet_lr_scheduler.step() #更新学习率
         epoch_end_time = time()
         train_writer.add_scalar('Loss/Epoch/Sparse', losses.avg(0), epoch_idx)
         train_writer.add_scalar('Loss/Epoch/Dense', losses.avg(1), epoch_idx)
+        #Jerry
         if cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
-             train_writer.add_scalar('Loss/Epoch/Density', losses.avg(2), epoch_idx)
+            train_writer.add_scalar('Loss/Epoch/Density', losses.avg(2), epoch_idx)
+        #train_writer.add_scalar('Batchnorm/conv1_mean', grnet.module.conv1._modules["1"].running_mean[0], epoch_idx)
+        #train_writer.add_scalar('Batchnorm/conv1_var', grnet.module.conv1._modules["1"].running_var[0], epoch_idx)
+
         logging.info(
             '[Epoch %d/%d] EpochTime = %.3f (s) Losses = %s' %
             (epoch_idx, cfg.TRAIN.N_EPOCHS, epoch_end_time - epoch_start_time, ['%.4f' % l for l in losses.avg()]))
@@ -172,6 +200,7 @@ def train_net(cfg):
             logging.info('Saved checkpoint to %s ...' % output_path)
             if metrics.better_than(best_metrics):
                 best_metrics = metrics
+
 
     train_writer.close()
     val_writer.close()

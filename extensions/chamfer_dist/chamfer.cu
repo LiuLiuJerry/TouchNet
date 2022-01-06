@@ -19,15 +19,16 @@ __global__ void chamfer_dist_kernel(int batch_size,
                                     const float* xyz2,
                                     float* dist,
                                     int* indexes) {
-  const int batch = 512;
+  const int batch = 512;  //512个点为1束
   __shared__ float buf[batch * 3];
-  for (int i = blockIdx.x; i < batch_size; i += gridDim.x) {
-    for (int k2 = 0; k2 < m; k2 += batch) {
-      int end_k = min(m, k2 + batch) - k2;
+  for (int i = blockIdx.x; i < batch_size; i += gridDim.x) {  //第i个点云(batch)
+    for (int k2 = 0; k2 < m; k2 += batch) { //第k2个点
+      int end_k = min(m, k2 + batch) - k2; //若m小于512则以m分界，若m>=512则以512分界
       for (int j = threadIdx.x; j < end_k * 3; j += blockDim.x) {
         buf[j] = xyz2[(i * m + k2) * 3 + j];
       }
       __syncthreads();
+      //当前线程j，第i个点云中第j个点
       for (int j = threadIdx.x + blockIdx.y * blockDim.x; j < n;
            j += blockDim.x * gridDim.y) {
         float x1            = xyz1[(i * n + j) * 3 + 0];
@@ -39,7 +40,7 @@ __global__ void chamfer_dist_kernel(int batch_size,
         if (end_ka == batch) {
           for (int k = 0; k < batch; k += 4) {
             {
-              float x2   = buf[k * 3 + 0] - x1;
+              float x2   = buf[k * 3 + 0] - x1; //xyz2中的点k到xyz1中当前点j的平方和
               float y2   = buf[k * 3 + 1] - y1;
               float z2   = buf[k * 3 + 2] - z1;
               float dist = x2 * x2 + y2 * y2 + z2 * z2;
@@ -80,7 +81,7 @@ __global__ void chamfer_dist_kernel(int batch_size,
               }
             }
           }
-        } else {
+        } else { //一个循环四次，一次算4个点的距离
           for (int k = 0; k < end_ka; k += 4) {
             {
               float x2   = buf[k * 3 + 0] - x1;
@@ -134,7 +135,7 @@ __global__ void chamfer_dist_kernel(int batch_size,
             best_dist_index = k + k2;
           }
         }
-        if (k2 == 0 || dist[(i * n + j)] > best_dist) {
+        if (k2 == 0 || dist[(i * n + j)] > best_dist) { //保存最近点和最近点的索引
           dist[(i * n + j)]    = best_dist;
           indexes[(i * n + j)] = best_dist_index;
         }
@@ -156,10 +157,10 @@ std::vector<torch::Tensor> chamfer_cuda_forward(torch::Tensor xyz1,
   torch::Tensor idx1 = torch::zeros({batch_size, n}, torch::CUDA(torch::kInt));
   torch::Tensor idx2 = torch::zeros({batch_size, m}, torch::CUDA(torch::kInt));
 
-  chamfer_dist_kernel<<<dim3(32, 16, 1), 512>>>(
+  chamfer_dist_kernel<<<dim3(32, 16, 1), 512>>>( //xyz2到xyz1中的最近点
     batch_size, n, xyz1.data_ptr<float>(), m, xyz2.data_ptr<float>(),
-    dist1.data_ptr<float>(), idx1.data_ptr<int>());
-  chamfer_dist_kernel<<<dim3(32, 16, 1), 512>>>(
+    dist1.data_ptr<float>(), idx1.data_ptr<int>()); //每个grid由三维的block构成，每个clock有512个thread
+  chamfer_dist_kernel<<<dim3(32, 16, 1), 512>>>( //xyz1到xyz2中的最近点
     batch_size, m, xyz2.data_ptr<float>(), n, xyz1.data_ptr<float>(),
     dist2.data_ptr<float>(), idx2.data_ptr<int>());
 

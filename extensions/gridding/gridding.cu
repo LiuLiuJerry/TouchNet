@@ -39,19 +39,19 @@ __global__ void gridding_kernel(int n_grid_vertices,
                                 int *__restrict__ grid_pt_indexes) {
   int batch_index = blockIdx.x;
   int index       = threadIdx.x;
-  int stride      = blockDim.x;
+  int stride      = blockDim.x; //每个block的线程数
 
-  ptcloud += batch_index * n_pts * 3;
-  grid_weights += batch_index * n_grid_vertices;
-  grid_pt_weights += batch_index * n_pts * 24;
-  grid_pt_indexes += batch_index * n_pts * 8;
+  ptcloud += batch_index * n_pts * 3; //指向当前点云的指针
+  grid_weights += batch_index * n_grid_vertices; //指向当前网格点的指针
+  grid_pt_weights += batch_index * n_pts * 24; //每个点到周围8个网格点产生的权重
+  grid_pt_indexes += batch_index * n_pts * 8; //每个点的周围8个网格点的索引
 
-  for (int j = index; j < n_pts; j += stride) {
+  for (int j = index; j < n_pts; j += stride) { //如果一个点云的点的数目一个block放不下的话，则进入下一个循环
     float pt_x = ptcloud[j * 3 + 0];
     float pt_y = ptcloud[j * 3 + 1];
     float pt_z = ptcloud[j * 3 + 2];
 
-    int lower_x = std::floor(pt_x);
+    int lower_x = std::floor(pt_x); //此处应该已经处以网格大小了，因此直接取整数即可得到其在第几个网格中
     int upper_x = std::ceil(pt_x);
     if (lower_x == upper_x) {
       upper_x += 1;
@@ -74,8 +74,8 @@ __global__ void gridding_kernel(int n_grid_vertices,
     // Compute weights and corresponding positions, a loop for 8 points
     // LLL -> Lower X, Lower Y, Lower Z
     grid_pt_indexes[j * 8 + 0] =
-      compute_index(lx_offset, ly_offset, lz_offset, len_y, len_z);
-    grid_pt_weights[j * 24 + 0] = compute_weight(pt_x, lower_x);
+      compute_index(lx_offset, ly_offset, lz_offset, len_y, len_z); //计算每个点对应的网格点的索引
+    grid_pt_weights[j * 24 + 0] = compute_weight(pt_x, lower_x); //计算每个点给周围网格顶点的权重影响，一共8个网格顶点
     grid_pt_weights[j * 24 + 1] = compute_weight(pt_y, lower_y);
     grid_pt_weights[j * 24 + 2] = compute_weight(pt_z, lower_z);
 
@@ -134,7 +134,7 @@ __global__ void gridding_kernel(int n_grid_vertices,
   int gvtx_idx = 0;
   for (int j = index; j < n_pts; j += stride) {
     // LLL -> Lower X, Lower Y, Lower Z
-    gvtx_idx = grid_pt_indexes[j * 8 + 0];
+    gvtx_idx = grid_pt_indexes[j * 8 + 0]; //将每个网格顶点x y z轴的权重乘起来， 加到网格对应的权重存储grid_weights上
     atomicAdd(&(grid_weights[gvtx_idx]), grid_pt_weights[j * 24 + 0] *
                                            grid_pt_weights[j * 24 + 1] *
                                            grid_pt_weights[j * 24 + 2]);
@@ -216,14 +216,14 @@ __global__ void gridding_grad_kernel(int n_grid_vertices,
                                      const int *__restrict__ grid_pt_indexes,
                                      const float *__restrict__ grad_grid,
                                      float *__restrict__ grad_ptcloud) {
-  int batch_index = blockIdx.x;
-  int index       = threadIdx.x;
+  int batch_index = blockIdx.x; //第i个点云
+  int index       = threadIdx.x; //点云中第j个点
   int stride      = blockDim.x;
 
-  grid_pt_weights += batch_index * n_pts * 24;
-  grid_pt_indexes += batch_index * n_pts * 8;
-  grad_grid += batch_index * n_grid_vertices;
-  grad_ptcloud += batch_index * n_pts * 3;
+  grid_pt_weights += batch_index * n_pts * 24;  //每个点到周围网格点的权重影响
+  grid_pt_indexes += batch_index * n_pts * 8;  //每个点周围的网格点的索引
+  grad_grid += batch_index * n_grid_vertices;  //网格点存储的grad
+  grad_ptcloud += batch_index * n_pts * 3; //每个点的grad索引
 
   int gvtx_idx   = 0;
   float grad_vtx = 0, x_weights = 0, y_weights = 0, z_weights = 0;
@@ -235,7 +235,7 @@ __global__ void gridding_grad_kernel(int n_grid_vertices,
     x_weights = grid_pt_weights[j * 24 + 0];
     y_weights = grid_pt_weights[j * 24 + 1];
     z_weights = grid_pt_weights[j * 24 + 2];
-    atomicAdd(&(grad_ptcloud[j * 3 + 0]), -grad_vtx * y_weights * z_weights);
+    atomicAdd(&(grad_ptcloud[j * 3 + 0]), -grad_vtx * y_weights * z_weights); //根据点云中的点到网格点的权重将网格点的grad拆分到每个点云上
     atomicAdd(&(grad_ptcloud[j * 3 + 1]), -grad_vtx * x_weights * z_weights);
     atomicAdd(&(grad_ptcloud[j * 3 + 2]), -grad_vtx * x_weights * y_weights);
 
