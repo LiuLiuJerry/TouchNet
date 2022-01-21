@@ -38,8 +38,8 @@ __C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = './datasets/ShapeNetTouc
 __C.DATASETS.SHAPENETTOUCH.N_RENDERINGS        = 4 #一个物体对应8个rendering？
 __C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到？
 # 参数1：subset（train/val）, 参数2：dc['taxonomy_id'],物体类别的id  参数3：s,数据id  参数：i，可能是同一个物体不同的partial？)
-__C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/jerry/data/ShapeNetCompletion/%s/partial/%s/%s/path2048_%.2d.pcd'
-__C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/jerry/data/ShapeNetCompletion/%s/complete/%s/%s/01.pcd'
+__C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/manager/data/ShapeCompletion/pcd_2048/%s/partial/%s/%s/path2048_%.2d.pcd'
+__C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/manager/data/ShapeCompletion/pcd_2048/%s/complete/%s/%s/01.pcd'
 
 #
 # Dataset

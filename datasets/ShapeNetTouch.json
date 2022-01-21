@@ -1,1 +1,1 @@
-[{"taxonomy_id": "02876657", "taxonomy_name": "bottle", "test": ["3d758f0c11f01e3e3ddcd369aa279f39", "2a9817a43c5b3983bb13793251b29587"], "train": ["2f4cf418cb91949d38fc23bb1b265fa7", "1cf98e5b6fff5471c8724d5673a063a6", "1b64b36bf7ddae3d7ad11050da24bb12", "3e7d7a9637e385f2fd1efdcc788bb066", "3b0e35ff08f09a85f0d11ae402ef940e"], "val": ["2eba1ad799a00142938c8d9daf9b36f6", "3c6d6ff143483efaebb19cf38af396e6"]}]
+[{"taxonomy_id": "02876657", "taxonomy_name": "bottle"}]

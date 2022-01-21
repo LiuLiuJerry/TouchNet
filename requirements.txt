@@ -11,3 +11,4 @@ transforms3d
 tqdm
 OpenEXR
 pyexr
+plyfile
