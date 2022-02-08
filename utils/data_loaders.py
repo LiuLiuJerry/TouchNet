@@ -10,6 +10,7 @@ import logging
 import numpy as np
 import random
 import torch.utils.data.dataset
+import torchvision.transforms as transforms
 
 import utils.data_transforms
 
@@ -75,7 +76,7 @@ class Dataset(torch.utils.data.dataset.Dataset): #重写pytorch的dataset类
         return sample['taxonomy_id'], sample['model_id'], data
 
 
-class Dataset1(torch.utils.data.dataset.Dataset): #重写pytorch的dataset类
+class Dataset1(torch.utils.data.dataset.Dataset): #重写pytorch的dataset类，不采用随机选择一个render的方式，而是将所有render加入训练集
     def __init__(self, options, file_list, transforms=None):
         self.options = options
         self.file_list = file_list
@@ -89,15 +90,17 @@ class Dataset1(torch.utils.data.dataset.Dataset): #重写pytorch的dataset类
         data = {}
         rand_idx = -1
 
+        
         for ri in self.options['required_items']:
             file_path = sample['%s_path' % ri]
             if type(file_path) == list:
-                file_path = file_path[rand_idx]
+                file_path = file_path[-1]
 
             data[ri] = IO.get(file_path).astype(np.float32)
 
         if self.transforms is not None:
             data = self.transforms(data)
+
 
         return sample['taxonomy_id'], sample['model_id'], data
 
@@ -229,6 +232,39 @@ class ShapeNetDataTouchLoader(object):
                 'objects': ['partial_cloud', 'gtcloud']
             }])
 
+    def _get_transforms1(self, cfg, subset):  #by Jerry: data augmentation
+        if subset == DatasetSubset.TRAIN:
+            return utils.data_transforms.Compose([{
+                'callback': 'RandomSamplePoints',
+                'parameters': {
+                    'n_points': cfg.CONST.N_INPUT_POINTS
+                },
+                'objects': ['partial_cloud']
+            }, {
+                'callback': 'RandomMirrorPoints',
+                'objects': ['partial_cloud', 'gtcloud']
+            },{
+                'callback': 'RandomRotatePoints',
+                'objects': ['partial_cloud']                
+            },{
+                'callback': 'ToTensor',
+                'objects': ['partial_cloud', 'gtcloud']
+            }])
+        else:
+            return utils.data_transforms.Compose([{
+                'callback': 'RandomSamplePoints',
+                'parameters': {
+                    'n_points': cfg.CONST.N_INPUT_POINTS
+                },
+                'objects': ['partial_cloud']
+            },{
+                'callback': 'RandomRotatePoints',
+                'objects': ['partial_cloud']                
+            }, {
+                'callback': 'ToTensor',
+                'objects': ['partial_cloud', 'gtcloud']
+            }])
+
     def _get_subset(self, subset):
         if subset == DatasetSubset.TRAIN:
             return 'train'
@@ -263,7 +299,7 @@ class ShapeNetDataTouchLoader(object):
         return file_list
 
 
-    #by Jerry
+    #by Jerry: feed all rendered data into network
     def _get_file_list1(self, cfg, subset, n_renderings=1):
         """Prepare file list for the dataset"""
         file_list = []
@@ -281,7 +317,7 @@ class ShapeNetDataTouchLoader(object):
                     s,
                     'partial_cloud_path': [
                         cfg.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH % (subset, dc['taxonomy_id'], s, i)
-                        for i in range(n_renderings)
+                        #for i in range(n_renderings)
                     ],
                     'gtcloud_path':
                     cfg.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH % (subset, dc['taxonomy_id'], s),

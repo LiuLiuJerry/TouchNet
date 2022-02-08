@@ -222,6 +222,7 @@ class RandomMirrorPoints(object):
         return ptcloud
 
 
+
 class NormalizeObjectPose(object):
     def __init__(self, parameters):
         input_keys = parameters['input_keys']
@@ -238,12 +239,14 @@ class NormalizeObjectPose(object):
         center = (bbox.min(0) + bbox.max(0)) / 2
         bbox -= center
         yaw = np.arctan2(bbox[3, 1] - bbox[0, 1], bbox[3, 0] - bbox[0, 0])
-        rotation = np.array([[np.cos(yaw), -np.sin(yaw), 0], [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]])
+        rotation = np.array([[np.cos(yaw), -np.sin(yaw), 0], [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]]) #绕z轴旋转
         bbox = np.dot(bbox, rotation)
         scale = bbox[3, 0] - bbox[0, 0]
         bbox /= scale
         ptcloud = np.dot(ptcloud - center, rotation) / scale
-        ptcloud = np.dot(ptcloud, [[1, 0, 0], [0, 0, 1], [0, 1, 0]])
+        ptcloud = np.dot(ptcloud, [[1, 0, 0], [0, 0, 1], [0, 1, 0]]) #z轴和y轴替换
 
         data[self.ptcloud_key] = ptcloud
         return data
+    
+ 

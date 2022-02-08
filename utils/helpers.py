@@ -43,7 +43,7 @@ def get_ptcloud_img(ptcloud):
     x, z, y = ptcloud.transpose(1, 0)
     ax = fig.gca(projection=Axes3D.name, adjustable='box')
     ax.axis('off')
-    ax.axis('scaled')
+    #ax.axis('scaled')
     ax.view_init(30, 45)
 
     max, min = np.max(ptcloud), np.min(ptcloud)

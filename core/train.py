@@ -126,12 +126,16 @@ def train_net(cfg):
 
 
             sparse_ptcloud, dense_ptcloud = grnet(data)
-            sparse_loss = chamfer_dist(sparse_ptcloud, data['gtcloud'])  #稀疏点云和稠密点云一起算损失
+            #sparse_loss = chamfer_dist(sparse_ptcloud, data['gtcloud'])  #稀疏点云和稠密点云一起算损失
             dense_loss = chamfer_dist(dense_ptcloud, data['gtcloud'])
+            #根据论文，fine-tunning的时候加入grdding loss 可提高准确率
+            sparse_loss = gridding_loss(sparse_ptcloud, data['gtcloud'])+chamfer_dist(sparse_ptcloud, data['gtcloud'])
+            #dense_loss = gridding_loss(dense_ptcloud, data['gtcloud'])
+            
             
             #Jerry
             if cfg.v_flag == VLossFlag.INITIAL_VERSION:
-                _loss = sparse_loss  + dense_loss  #
+                _loss = sparse_loss  + dense_loss  
                 losses.update([sparse_loss.item() * 1000, dense_loss.item() * 1000])
             elif cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
                 _d_loss,_shape_loss, _density_loss = get_Geometric_Loss(dense_ptcloud, data['gtcloud'])
@@ -174,7 +178,7 @@ def train_net(cfg):
         epoch_end_time = time()
         train_writer.add_scalar('Loss/Epoch/Sparse', losses.avg(0), epoch_idx)
         train_writer.add_scalar('Loss/Epoch/Dense', losses.avg(1), epoch_idx)
-        #Jerry
+        #Jerry plot density loss
         if cfg.v_flag == VLossFlag.DENSITY_LOSS_VERSION:
             train_writer.add_scalar('Loss/Epoch/Density', losses.avg(2), epoch_idx)
         #train_writer.add_scalar('Batchnorm/conv1_mean', grnet.module.conv1._modules["1"].running_mean[0], epoch_idx)

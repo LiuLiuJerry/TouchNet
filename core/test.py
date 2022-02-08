@@ -77,8 +77,11 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, grnet=N
                 data[k] = utils.helpers.var_or_cuda(v)
 
             sparse_ptcloud, dense_ptcloud = grnet(data)  #获得计算数据
-            sparse_loss = chamfer_dist(sparse_ptcloud, data['gtcloud'])
+            #sparse_loss = chamfer_dist(sparse_ptcloud, data['gtcloud'])
             dense_loss = chamfer_dist(dense_ptcloud, data['gtcloud'])
+            
+            sparse_loss = gridding_loss(sparse_ptcloud, data['gtcloud'])+chamfer_dist(sparse_ptcloud, data['gtcloud'])
+            #dense_loss = gridding_loss(dense_ptcloud, data['gtcloud'])
 
             #Jerry
             if cfg.v_flag == VLossFlag.INITIAL_VERSION:

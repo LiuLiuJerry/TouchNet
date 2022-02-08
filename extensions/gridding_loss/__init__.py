@@ -49,7 +49,7 @@ class GriddingDistance(torch.nn.Module):
         pred_cloud(b, n_pts1, 3)
         gt_cloud(b, n_pts2, 3)
         '''
-        pred_cloud = pred_cloud * self.scale / 2
+        pred_cloud = pred_cloud * self.scale / 2 #点云缩放
         gt_cloud = gt_cloud * self.scale / 2
 
         min_pred_x = torch.min(pred_cloud[:, :, 0])
@@ -66,7 +66,7 @@ class GriddingDistance(torch.nn.Module):
         min_gt_z = torch.min(gt_cloud[:, :, 2])
         max_gt_z = torch.max(gt_cloud[:, :, 2])
 
-        min_x = torch.floor(torch.min(min_pred_x, min_gt_x)) - 1
+        min_x = torch.floor(torch.min(min_pred_x, min_gt_x)) - 1  #取统一的归一化方法
         max_x = torch.ceil(torch.max(max_pred_x, max_gt_x)) + 1
         min_y = torch.floor(torch.min(min_pred_y, min_gt_y)) - 1
         max_y = torch.ceil(torch.max(max_pred_y, max_gt_y)) + 1
@@ -74,7 +74,7 @@ class GriddingDistance(torch.nn.Module):
         max_z = torch.ceil(torch.max(max_pred_z, max_gt_z)) + 1
 
         _pred_clouds = torch.split(pred_cloud, 1, dim=0)
-        _gt_clouds = torch.split(gt_cloud, 1, dim=0)
+        _gt_clouds = torch.split(gt_cloud, 1, dim=0) #将不同batch的点云分开
         pred_grids = []
         gt_grids = []
         for pc, gc in zip(_pred_clouds, _gt_clouds):
@@ -104,7 +104,7 @@ class GriddingLoss(torch.nn.Module):
         for i in range(n_dists):
             alpha = self.alphas[i]
             gdist = self.gridding_dists[i]
-            pred_grid, gt_grid = gdist(pred_cloud, gt_cloud)
+            pred_grid, gt_grid = gdist(pred_cloud, gt_cloud) #点云体素化
 
             if gridding_loss is None:
                 gridding_loss = alpha * self.l1_loss(pred_grid, gt_grid)
