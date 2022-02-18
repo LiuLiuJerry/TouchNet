@@ -84,6 +84,8 @@ __C.NETWORK                                      = edict()
 __C.NETWORK.N_SAMPLING_POINTS                    = 2048  #没有用到
 __C.NETWORK.GRIDDING_LOSS_SCALES                 = [128]
 __C.NETWORK.GRIDDING_LOSS_ALPHAS                 = [0.1]
+__C.NETWORK.N_SAMPLING_MESHPOINTS                = 5000
+__C.NETWORK.SAMPLING_SIGMA                       = 0.025
 
 #
 # Train

@@ -39,6 +39,10 @@ torch::Tensor gridding_reverse_cuda_backward(torch::Tensor ptcloud,
                                              torch::Tensor grid,
                                              torch::Tensor grad_ptcloud,
                                              cudaStream_t stream);
+//Jerry /*To Do*/
+//声明Torch函数
+//grid_sampling_cuda_forward
+//grid_sampling_cuda_backward
 
 std::vector<torch::Tensor> gridding_forward(float min_x,
                                             float max_x,
@@ -84,6 +88,12 @@ torch::Tensor gridding_reverse_backward(torch::Tensor ptcloud,
   return gridding_reverse_cuda_backward(ptcloud, grid, grad_ptcloud, stream);
 }
 
+// Jerry
+/* To Do : 调用cuda函数 */
+// grid_sampling_forward
+// grid_sampling_backward
+
+//函数注册  //将cpp函数对应到python函数
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("forward", &gridding_forward, "Gridding forward (CUDA)");
   m.def("backward", &gridding_backward, "Gridding backward (CUDA)");
@@ -91,4 +101,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         "Gridding Reverse forward (CUDA)");
   m.def("rev_backward", &gridding_reverse_backward,
         "Gridding Reverse backward (CUDA)");
+  /* 注册两个函数 */
+  //m.def("samp_forward", &grid_sampling_forward, "Grid Sampling forward (CUDA)");
+  //m.def("samp_backward", &grid_sampling_backward, "Grid Sampling backward (CUDA)");
+
 }

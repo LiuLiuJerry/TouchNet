@@ -13,6 +13,7 @@ import gridding
 class GriddingFunction(torch.autograd.Function):
     @staticmethod
     def forward(ctx, scale, ptcloud):
+        #例：scale=64
         grid, grid_pt_weights, grid_pt_indexes = gridding.forward(-scale, scale - 1, -scale, scale - 1, -scale,
                                                                   scale - 1, ptcloud)
         # print(grid.size())             # torch.Size(batch_size, n_grid_vertices)
@@ -49,12 +50,13 @@ class Gridding(torch.nn.Module):
 
 
 class GriddingReverseFunction(torch.autograd.Function):
+    #根据网格特征生成点云
     @staticmethod
     def forward(ctx, scale, grid):
         ptcloud = gridding.rev_forward(scale, grid)
         ctx.save_for_backward(torch.Tensor([scale]), grid, ptcloud)
         return ptcloud
-
+    #根据点云回传的梯度(grad_pycloud)算网格的梯度
     @staticmethod
     def backward(ctx, grad_ptcloud):
         scale, grid, ptcloud = ctx.saved_tensors
@@ -72,3 +74,26 @@ class GriddingReverse(torch.nn.Module):
     def forward(self, grid):
         ptcloud = GriddingReverseFunction.apply(self.scale, grid)
         return ptcloud / self.scale * 2
+
+#by Jerry
+class GridSamplingFunction(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, scale, grid, ptcloud):
+        pt_inout, grid_pt_weights, grid_pt_indexes = gridding.samp_forward(scale, grid, ptcloud)
+        ctx.save_for_backward(grid_pt_weights, grid_pt_indexes, ptcloud)
+        return pt_inout
+
+    @staticmethod
+    def backward(ctx, grad_ptcloud):
+        grid_pt_weights, grid_pt_indexes, ptcloud = ctx.saved_tensors
+        grad_grid = gridding.samp_backward(ptcloud, grid_pt_weights, grid_pt_indexes, grad_ptcloud)
+        return None, grad_grid
+    
+class GriddingSample(torch.nn.Module):
+    def __init__(self,scale):
+        super().__init__()
+        self.scale = scale
+    
+    def forward(self, grid, ptcloud):
+        # grid是每个网格顶点的特征
+        pt_inout = GridSamplingFunction.apply(self.scale, grid, ptcloud)
