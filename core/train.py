@@ -140,18 +140,21 @@ def train_net(cfg):
                 # predicted labels
                 y_cpu = res.squeeze(1).detach().cpu().numpy()
                 samples_cpu = samples.cpu().numpy()
-                ptcloud_cpu = samples_cpu[y_cpu > 0].reshape(cfg.TRAIN.BATCH_SIZE,-1,3)
+                
                 # ground truth labels
                 labels_cpu = labels.squeeze(1).cpu().numpy()
-                gtcloud_cpu = samples_cpu[labels_cpu>0].reshape(cfg.TRAIN.BATCH_SIZE,-1,3)
+                
                 for i in range(cfg.TRAIN.BATCH_SIZE):
                     path_save = "output/models/train/%s/%s/"%(taxonomy_ids[i], model_ids[i])
                     if not os.path.exists(path_save):
                         os.makedirs(path_save)
 
-                    utils.io.IO.put(path_save + "gt.ply", gtcloud_cpu[0])
+                    ptcloud_cpu = samples_cpu[0][y_cpu[0] > 0]
+                    gtcloud_cpu = samples_cpu[0][labels_cpu[0] > 0]
+                    
+                    utils.io.IO.put(path_save + "gt.ply", gtcloud_cpu)
                     utils.io.IO.put(path_save + "partial.ply", data['partial_cloud'].cpu().numpy()[0])
-                    utils.io.IO.put(path_save + "predicted_%d.ply", ptcloud_cpu[0])
+                    utils.io.IO.put(path_save + "predicted_%d.ply", ptcloud_cpu)
                 
                     print("train point cloud saved: %s"%(path_save + "ep%.2d_%.2d.ply"%(epoch_idx, i)))
 
