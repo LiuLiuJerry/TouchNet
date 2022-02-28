@@ -6,9 +6,13 @@
 # @Email:  cshzxie@gmail.com
 
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
 from extensions.gridding import Gridding, GriddingReverse
 from extensions.cubic_feature_sampling import CubicFeatureSampling
+
+from models.SurfaceClassifier import SurfaceClassifier
 
 from p_utils.common import gather_points
 from p_utils.sampling import fps
@@ -40,7 +44,11 @@ class RandomPointSampling(torch.nn.Module):
 class GRImplicitNet(torch.nn.Module):
     def __init__(self, cfg):
         super().__init__() #调用父类
-        self.surface_classifier = SurfaceClassifier()
+        self.opt = cfg
+        
+        self.surface_classifier = SurfaceClassifier(filter_channels=self.opt.mlp_dim,
+                                                    no_residual=self.opt.no_residual,
+                                                    last_op=nn.Sigmoid())
         self.gridding = Gridding(scale=64)
         self.conv1 = torch.nn.Sequential(
             torch.nn.Conv3d(1, 32, kernel_size=4, padding=2),
@@ -95,31 +103,15 @@ class GRImplicitNet(torch.nn.Module):
             #torch.nn.LeakyReLU(0.2),
         )
         self.dconv10 = torch.nn.Sequential(
-            torch.nn.ConvTranspose3d(32, 1, kernel_size=4, stride=2, bias=False, padding=1),
-            torch.nn.BatchNorm3d(1),
+            torch.nn.ConvTranspose3d(32, 16, kernel_size=4, stride=2, bias=False, padding=1),
+            torch.nn.BatchNorm3d(16),
             torch.nn.ReLU()
             #torch.nn.LeakyReLU(0.2),
         )
-        self.gridding_rev = GriddingReverse(scale=64)
-        self.point_sampling = RandomPointSampling(n_points=2048)
+        
+        self.error_term = nn.MSELoss()
 
-        self.feature_sampling = CubicFeatureSampling()
-        self.fc11 = torch.nn.Sequential(
-            torch.nn.Linear(1792, 1792),
-            #torch.nn.ReLU()
-            torch.nn.LeakyReLU(0.2)
-        )
-        self.fc12 = torch.nn.Sequential(
-            torch.nn.Linear(1792, 448),
-            #torch.nn.ReLU()
-            torch.nn.LeakyReLU(0.2)
-        )
-        self.fc13 = torch.nn.Sequential(
-            torch.nn.Linear(448, 112),
-            #torch.nn.ReLU()
-            torch.nn.LeakyReLU(0.2)
-        )
-        self.fc14 = torch.nn.Linear(112, 24)
+
         
     def filter(self, partial_cloud):
         # print(partial_cloud.size())     # torch.Size([batch_size, 2048, 3])
@@ -143,21 +135,41 @@ class GRImplicitNet(torch.nn.Module):
         # print(pt_features_16_r.size())  # torch.Size([batch_size, 64, 16, 16, 16])
         pt_features_32_r = self.dconv9(pt_features_16_r) + pt_features_32_l
         # print(pt_features_32_r.size())  # torch.Size([batch_size, 32, 32, 32, 32])
-        pt_features_64_r = self.dconv10(pt_features_32_r) + pt_features_64_l
+        pt_features_64_r = self.dconv10(pt_features_32_r) 
              
         self.feat_list = [pt_features_64_r]
-       
+    
+    def project(self, points):
+        '''
+        :parame points: [B,N,3]
+        '''
+        point_features = []
+        uvw = points.unsqueeze(2) # [B, N, 1, 3]
+        uvw = uvw.unsqueeze(2) # [B, N, 1, 1, 3]
+        for f in self.feat_list:
+            '''
+            input: (N,C,D,H,W)
+            grid : (N,D,H,W,3) 
+            '''
+            p_f = torch.nn.functional.grid_sample(f, uvw) #[B,C,N,1,1]
+            point_features.append(p_f.view(p_f.shape[:3]))#[B,C,N]
+        
+        return point_features
+      
     def query(self, points):
         #使用points对体素的特征进行查询
-        index = self.project(points)  #投影到对应网路中
-        point_local_feat = []
-        pred = self.surface_classifier(point_local_feat)
-        return pred
+        point_features = self.project(points)  #投影到对应网路中
+        point_features = point_features[-1]
+        self.preds = self.surface_classifier(point_features)
+        return self.preds
         
-    def get_error(self):
-        pass
+    def get_error(self, labels):
+        return self.error_term(self.preds, labels)
+    
+    def get_preds(self):
+        return self.preds
 
-    def forward(self, partial_cloud, points):
+    def forward(self, partial_cloud, points, labels):
         # partial_cloud: B × num_sample_inout × 3
         # points: B × 2048 × 3
         self.filter(partial_cloud)
@@ -166,6 +178,6 @@ class GRImplicitNet(torch.nn.Module):
         
         res = self.get_preds()
         
-        error = self.get_error()
+        error = self.get_error(labels)
 
         return res, error

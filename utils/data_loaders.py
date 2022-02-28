@@ -47,7 +47,7 @@ def collate_fn(batch):
     return taxonomy_ids, model_ids, data
 
 
-class Dataset(torch.utils.data.dataset.Dataset): #重写pytorch的dataset类
+class Dataset2(torch.utils.data.dataset.Dataset): #重写pytorch的dataset类
     def __init__(self, options, file_list, transforms=None):
         self.options = options
         self.file_list = file_list

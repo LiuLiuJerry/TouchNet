@@ -33,13 +33,14 @@ __C.DATASETS.KITTI.PARTIAL_POINTS_PATH           = '/home/SENSETIME/xiehaozhe/Da
 __C.DATASETS.KITTI.BOUNDING_BOX_FILE_PATH        = '/home/SENSETIME/xiehaozhe/Datasets/KITTI/bboxes/%s.txt'
 
 #Jerry: ShapeNetTouch config
-__C.DATASETS.SHAPENETTOUCH                           = edict()
+__C.DATASETS.SHAPENETTOUCH                            = edict()
 __C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = './datasets/ShapeNetTouch.json'
-__C.DATASETS.SHAPENETTOUCH.N_RENDERINGS        = 4 #一个物体对应8个rendering？
+__C.DATASETS.SHAPENETTOUCH.N_RENDERINGS               = 4 #一个物体对应8个rendering？
 __C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到？
-# 参数1：subset（train/val）, 参数2：dc['taxonomy_id'],物体类别的id  参数3：s,数据id  参数：i，可能是同一个物体不同的partial？)
+# 参数1：subset（train/val）, 参数2：dc['taxonomy_id'], 物体类别的id  参数3：s, 数据id  参数：i, 可能是同一个物体不同的partial？)
 __C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/manager/data/ShapeCompletion/pcd_2048/%s/partial/%s/%s/path2048_%.2d.pcd'
 __C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/manager/data/ShapeCompletion/pcd_2048/%s/complete/%s/%s/01.pcd'
+__C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = '/home/manager/data/ShapeCompletion/pcd_2048/%s/complete/%s/%s/01.obj'
 
 #
 # Dataset
@@ -59,7 +60,7 @@ __C.b_save = False
 #
 __C.CONST                                        = edict()
 __C.CONST.DEVICE                                 = '0'
-__C.CONST.NUM_WORKERS                            = 8
+__C.CONST.NUM_WORKERS                            = 4
 __C.CONST.N_INPUT_POINTS                         = 2048   #目标输入的点云点的数目
 
 #
@@ -74,7 +75,7 @@ __C.DIR.OUT_PATH                                 = './output'
 __C.MEMCACHED                                    = edict()
 __C.MEMCACHED.ENABLED                            = False
 __C.MEMCACHED.LIBRARY_PATH                       = '/mnt/lustre/share/pymc/py3'
-__C.MEMCACHED.SERVER_CONFIG                     = '/mnt/lustre/share/memcached_client/server_list.conf'
+__C.MEMCACHED.SERVER_CONFIG                      = '/mnt/lustre/share/memcached_client/server_list.conf'
 __C.MEMCACHED.CLIENT_CONFIG                      = '/mnt/lustre/share/memcached_client/client.conf'
 
 #
@@ -84,15 +85,15 @@ __C.NETWORK                                      = edict()
 __C.NETWORK.N_SAMPLING_POINTS                    = 2048  #没有用到
 __C.NETWORK.GRIDDING_LOSS_SCALES                 = [128]
 __C.NETWORK.GRIDDING_LOSS_ALPHAS                 = [0.1]
-__C.NETWORK.N_SAMPLING_MESHPOINTS                = 5000
-__C.NETWORK.SAMPLING_SIGMA                       = 0.025
+__C.NETWORK.N_SAMPLING_MESHPOINTS                = 2048
+
 
 #
 # Train
 #
 __C.TRAIN                                        = edict()
-__C.TRAIN.BATCH_SIZE                             = 4#4 #32
-__C.TRAIN.N_EPOCHS                               = 200#150
+__C.TRAIN.BATCH_SIZE                             = 4 #32
+__C.TRAIN.N_EPOCHS                               = 1
 __C.TRAIN.SAVE_FREQ                              = 25
 __C.TRAIN.LEARNING_RATE                          = 1e-5 #1e-4
 __C.TRAIN.LR_MILESTONES                          = [] # [15,50,80]

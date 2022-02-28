@@ -48,6 +48,7 @@ __global__ void gridding_reverse_kernel(int scale,
     }
 
     // assert j == compute_index(x_offset, y_offset, z_offset, scale)
+    // 每个网格顶点的权重只有一维
     float weights[8] = {
       grid[compute_index(x_offset - 1, y_offset - 1, z_offset - 1, scale)],
       grid[compute_index(x_offset - 1, y_offset - 1, z_offset, scale)],
@@ -182,6 +183,7 @@ __global__ void gridding_reverse_grad_kernel(
     z_offset -= scale / 2;
 
     // clang-format off  //每个顶点的梯度加上grad_ptcloud造成的影响
+    // 每个点在每个维度给到的梯度从该点指向对应网格点，大小和点云在该维度的梯度成正比
     atomicAdd(&(grad_grid[gvtx_indexes[0]]),
                 grad_ptcloud[j * 3 + 0] * ((x_offset - 1) - ptcloud[j * 3 + 0]) / weights_sum +
                 grad_ptcloud[j * 3 + 1] * ((y_offset - 1) - ptcloud[j * 3 + 1]) / weights_sum +

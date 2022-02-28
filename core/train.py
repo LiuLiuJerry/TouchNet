@@ -9,7 +9,6 @@ import logging
 import os
 import torch
 
-import utils.data_loaders
 import utils.helpers
 
 from datetime import datetime
@@ -19,11 +18,11 @@ from tensorboardX import SummaryWriter
 from core.test import test_net
 from extensions.chamfer_dist import ChamferDistance
 from extensions.gridding_loss import GriddingLoss
-from models.imnet import GRNet
 from utils.average_meter import AverageMeter
 from utils.metrics import Metrics
 
 from models.gr_implicitnet import GRImplicitNet
+from utils.ImplicitDataLoader import ImplicitDataset
 
 def train_net(cfg):
     # Enable the inbuilt cudnn auto-tuner to find the best algorithm to use
@@ -37,14 +36,12 @@ def train_net(cfg):
     train_data_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                     batch_size=cfg.TRAIN.BATCH_SIZE,
                                                     num_workers=cfg.CONST.NUM_WORKERS,
-                                                    collate_fn=utils.data_loaders.collate_fn,
                                                     pin_memory=True,
                                                     shuffle=True,
                                                     drop_last=True)
     val_data_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                                   batch_size=1,
                                                   num_workers=cfg.CONST.NUM_WORKERS,
-                                                  collate_fn=utils.data_loaders.collate_fn,
                                                   pin_memory=True,
                                                   shuffle=False)
 
@@ -105,8 +102,10 @@ def train_net(cfg):
         n_batches = len(train_data_loader) #每个epoch都将所有数据分为不同batch
         for batch_idx, (taxonomy_ids, model_ids, data) in enumerate(train_data_loader): #每次取一个batch
             data_time.update(time() - batch_end_time)
-            for k, v in data.items():
-                data[k] = utils.helpers.var_or_cuda(v)
+
+            partial_clouds = data['partial_cloud'].to(device='cuda')
+            samples = data['samples'].to(device='cuda')
+            labels = data['labels'].to(device='cuda')
 
             import sys
             b_debug = True if sys.gettrace() else False
@@ -116,7 +115,7 @@ def train_net(cfg):
                     print('-->name:', name, '-->grad_requirs:', params.requires_grad, '-->value:', params.values)
 
 
-            _loss, error = imnet(data)
+            res, _loss = imnet(partial_clouds, samples, labels)
             losses.update([_loss.item()*10000])
 
 
@@ -138,11 +137,22 @@ def train_net(cfg):
                           ['%.4f' % l for l in losses.val()]))
         
             if cfg.b_save and epoch_idx == cfg.TRAIN.N_EPOCHS :
+                # predicted labels
+                y_cpu = res.squeeze(1).detach().cpu().numpy()
+                samples_cpu = samples.cpu().numpy()
+                ptcloud_cpu = samples_cpu[y_cpu > 0].reshape(cfg.TRAIN.BATCH_SIZE,-1,3)
+                # ground truth labels
+                labels_cpu = labels.squeeze(1).cpu().numpy()
+                gtcloud_cpu = samples_cpu[labels_cpu>0].reshape(cfg.TRAIN.BATCH_SIZE,-1,3)
                 for i in range(cfg.TRAIN.BATCH_SIZE):
                     path_save = "output/models/train/%s/%s/"%(taxonomy_ids[i], model_ids[i])
-                    #if not os.path.exists(path_save):
-                    #    os.makedirs(path_save)
-                    #utils.io.IO.put(path_save + "sparse_%d.ply"%(i), sparse_ptcloud.cpu().detach().numpy()[i])
+                    if not os.path.exists(path_save):
+                        os.makedirs(path_save)
+
+                    utils.io.IO.put(path_save + "gt.ply", gtcloud_cpu[0])
+                    utils.io.IO.put(path_save + "partial.ply", data['partial_cloud'].cpu().numpy()[0])
+                    utils.io.IO.put(path_save + "predicted_%d.ply", ptcloud_cpu[0])
+                
                     print("train point cloud saved: %s"%(path_save + "ep%.2d_%.2d.ply"%(epoch_idx, i)))
 
 

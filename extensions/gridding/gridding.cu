@@ -134,8 +134,8 @@ __global__ void gridding_kernel(int n_grid_vertices,
   int gvtx_idx = 0;
   for (int j = index; j < n_pts; j += stride) {
     // LLL -> Lower X, Lower Y, Lower Z
-    // 将顶点对周围的每个网格的x y z轴的权重乘起来，
-    // 加到网格对应的权重存储数组grid_weights[gvtx_idx]
+    // 定义了一种特征传递方法，即将顶点对周围的每个网格的x y z轴的权重乘起来，加到网格对应的权重
+    // 存储数组grid_weights[gvtx_idx]
     gvtx_idx = grid_pt_indexes[j * 8 + 0]; 
     atomicAdd(&(grid_weights[gvtx_idx]), grid_pt_weights[j * 24 + 0] *
                                            grid_pt_weights[j * 24 + 1] *
@@ -238,6 +238,8 @@ __global__ void gridding_grad_kernel(int n_grid_vertices,
     x_weights = grid_pt_weights[j * 24 + 0]; //该点第1个顶点对应的权重
     y_weights = grid_pt_weights[j * 24 + 1];
     z_weights = grid_pt_weights[j * 24 + 2];
+    //链式法则，后面一层的梯度为grad_vtx，这里相当将[1-(p_x-low_x)]对p_x求导，得到-1
+    //维度上，从1维拆解为3维
     atomicAdd(&(grad_ptcloud[j * 3 + 0]), -grad_vtx * y_weights * z_weights); //根据点云中的点到网格点的权重将网格点的grad拆分到每个点云上
     atomicAdd(&(grad_ptcloud[j * 3 + 1]), -grad_vtx * x_weights * z_weights);
     atomicAdd(&(grad_ptcloud[j * 3 + 2]), -grad_vtx * x_weights * y_weights);

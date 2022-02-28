@@ -8,20 +8,19 @@
 import logging
 import torch
 
-import utils.data_loaders
 import utils.helpers
 
 from extensions.chamfer_dist import ChamferDistance
 from extensions.gridding_loss import GriddingLoss
-from models.imnet import GRNet
 from models.gr_implicitnet import GRImplicitNet
 from utils.average_meter import AverageMeter
-from utils.metrics import Metrics
+from utils.ImplicitMetrics import Metrics
+
+from utils.ImplicitDataLoader import ImplicitDataset
 
 import open3d
+import numpy as np
 
-#Jerry
-from utils.loss import get_Geometric_Loss, VLossFlag
 
 
 def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=None):
@@ -30,12 +29,10 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
 
     if test_data_loader is None:
         # Set up data loader
-        dataset_loader = utils.data_loaders.DATASET_LOADER_MAPPING[cfg.DATASET.TEST_DATASET](cfg)
-        test_data_loader = torch.utils.data.DataLoader(dataset=dataset_loader.get_dataset(
-            utils.data_loaders.DatasetSubset.TEST),
+        test_dataset = ImplicitDataset(cfg, phase='test')
+        test_data_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                                        batch_size=1,
                                                        num_workers=cfg.CONST.NUM_WORKERS,
-                                                       collate_fn=utils.data_loaders.collate_fn,
                                                        pin_memory=True,
                                                        shuffle=False)
 
@@ -68,13 +65,14 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
         model_id = model_id[0]
 
         with torch.no_grad():
-            for k, v in data.items():
-                data[k] = utils.helpers.var_or_cuda(v)
+            partial_clouds = data['partial_cloud'].to(device='cuda')
+            samples = data['samples'].to(device='cuda')
+            labels = data['labels'].to(device='cuda')
 
-            res, _loss = imnet(data)  #获得计算数据
+            res, _loss = imnet(partial_clouds, samples, labels)  #获得计算数据
             test_losses.update([_loss.item()*10000])
 
-            _metrics = Metrics.get(dense_ptcloud, data['gtcloud'])
+            _metrics = Metrics.get(res, labels)
             test_metrics.update(_metrics) #更新度量方法
 
             if taxonomy_id not in category_metrics:
@@ -83,11 +81,14 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
 
             #前3个模型渲染成图，作为tensorboard的展示
             if test_writer is not None and model_idx < 3:
-                ptcloud_cpu = res.squeeze().cpu().numpy()
+                y_cpu = res.squeeze(1).cpu().numpy()
+                samples_cpu = samples.cpu().numpy()
+                ptcloud_cpu = samples_cpu[y_cpu > 0]
                 ptcloud_img = utils.helpers.get_ptcloud_img(ptcloud_cpu)
                 test_writer.add_image('Model%02d/SparseReconstruction' % model_idx, ptcloud_img, epoch_idx, dataformats='HWC')
-                gt_ptcloud = data['gtcloud'].squeeze().cpu().numpy()
-                gt_ptcloud_img = utils.helpers.get_ptcloud_img(gt_ptcloud)
+                labels_cpu = labels.squeeze(1).cpu().numpy()
+                gtcloud_cpu = samples_cpu[labels_cpu>0]
+                gt_ptcloud_img = utils.helpers.get_ptcloud_img(gtcloud_cpu)
                 test_writer.add_image('Model%02d/GroundTruth' % model_idx, gt_ptcloud_img, epoch_idx, dataformats='HWC')
 
 
@@ -99,9 +100,17 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
                 path_save = "output/models/test/%s/%s/"%(taxonomy_id, model_id)
                 if not os.path.exists(path_save):
                     os.makedirs(path_save)
-                #utils.io.IO.put(path_save + "sparse.ply", sparse_ptcloud.cpu().detach().numpy()[0])
-                #utils.io.IO.put(path_save + "gt.ply", data['gtcloud'].cpu().numpy()[0])
-                #utils.io.IO.put(path_save + "partial.ply", data['partial_cloud'].cpu().numpy()[0])
+                # predicted labels
+                y_cpu = res.squeeze(1).cpu().numpy()
+                samples_cpu = samples.cpu().numpy()
+                ptcloud_cpu = samples_cpu[y_cpu > 0]
+                # ground truth labels
+                labels_cpu = labels.squeeze(1).cpu().numpy()
+                gtcloud_cpu = samples_cpu[labels_cpu>0]
+                
+                utils.io.IO.put(path_save + "predicted.ply", ptcloud_cpu)
+                utils.io.IO.put(path_save + "gt.ply", gtcloud_cpu)
+                utils.io.IO.put(path_save + "partial.ply", data['partial_cloud'].cpu().numpy()[0])
                 print("test point cloud saved: %s"%(path_save + "%.2d.ply"%(model_idx%4)))
 
 

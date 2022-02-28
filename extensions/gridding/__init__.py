@@ -79,14 +79,15 @@ class GriddingReverse(torch.nn.Module):
 class GridSamplingFunction(torch.autograd.Function):
     @staticmethod
     def forward(ctx, scale, grid, ptcloud):
-        pt_inout, grid_pt_weights, grid_pt_indexes = gridding.samp_forward(scale, grid, ptcloud)
+        pt_feature, grid_pt_weights, grid_pt_indexes = gridding.samp_forward(
+            -scale, scale - 1, -scale, scale - 1, -scale, scale - 1, grid, ptcloud)
         ctx.save_for_backward(grid_pt_weights, grid_pt_indexes, ptcloud)
-        return pt_inout
+        return pt_feature
 
     @staticmethod
     def backward(ctx, grad_ptcloud):
-        grid_pt_weights, grid_pt_indexes, ptcloud = ctx.saved_tensors
-        grad_grid = gridding.samp_backward(ptcloud, grid_pt_weights, grid_pt_indexes, grad_ptcloud)
+        grid_pt_weights, grid_pt_indexes = ctx.saved_tensors
+        grad_grid = gridding.samp_backward( grid_pt_weights, grid_pt_indexes, grad_ptcloud)
         return None, grad_grid
     
 class GriddingSample(torch.nn.Module):

@@ -46,7 +46,9 @@ def get_ptcloud_img(ptcloud):
     #ax.axis('scaled')
     ax.view_init(30, 45)
 
-    max, min = np.max(ptcloud), np.min(ptcloud)
+    #max, min = np.max(ptcloud), np.min(ptcloud)
+    max = 0.5
+    min = -0.5
     ax.set_xbound(min, max)
     ax.set_ybound(min, max)
     ax.set_zbound(min, max)
