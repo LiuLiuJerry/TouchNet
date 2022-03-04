@@ -69,10 +69,10 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
             samples = data['samples'].to(device='cuda')
             labels = data['labels'].to(device='cuda')
 
-            res, _loss = imnet(partial_clouds, samples, labels)  #获得计算数据
-            test_losses.update([_loss.item()*10000])
+            res, _loss = imnet(partial_clouds, samples, labels)  #获得计算数据 res:(B,1,N) samples:(B,N,3)
+            test_losses.update([_loss.item()*1000])
 
-            _metrics = Metrics.get(res, labels)
+            _metrics = Metrics.get(res, labels, samples)
             test_metrics.update(_metrics) #更新度量方法
 
             if taxonomy_id not in category_metrics:

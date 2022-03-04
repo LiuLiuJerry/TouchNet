@@ -47,11 +47,26 @@ def get_ptcloud_img(ptcloud):
     ax.view_init(30, 45)
 
     #max, min = np.max(ptcloud), np.min(ptcloud)
-    max = 0.5
-    min = -0.5
-    ax.set_xbound(min, max)
-    ax.set_ybound(min, max)
-    ax.set_zbound(min, max)
+    p_max = 0.6
+    p_min = -0.6
+    ax.set_xbound(p_min, p_max)
+    ax.set_ybound(p_min, p_max)
+    ax.set_zbound(p_min, p_max)
+    
+    dx = 1.2
+    xx = [p_min, p_max, p_max, p_min, p_min]
+    yy = [p_max, p_max, p_min, p_min, p_max]
+    kwargs1 = {'linewidth':1, 'color':'black', 'linestyle':'-'}
+    kwargs2 = {'linewidth':1, 'color':'black', 'linestyle':'--'}
+    ax.plot(xx, yy, p_max, **kwargs1)
+    ax.plot(xx[:3], yy[:3], p_min, **kwargs1)
+    ax.plot(xx[2:], yy[2:], p_min, **kwargs2)
+    for n in range(3):
+        ax.plot([xx[n], xx[n]], [yy[n], yy[n]], [p_min, p_max], **kwargs1)
+    ax.plot([xx[3], xx[3]], [yy[3], yy[3]], [p_min, p_max], **kwargs2)
+    
+   
+    
     ax.scatter(x, y, z, zdir='z', c=x, cmap='jet')
 
     fig.canvas.draw()

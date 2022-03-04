@@ -76,7 +76,7 @@ def train_net(cfg):
                                                               gamma=cfg.TRAIN.GAMMA)
     #grnet_lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(grnet_optimizer, gamma=0.95)
 
-
+    
 
     # Load pretrained model if exists
     init_epoch = 0
@@ -101,6 +101,7 @@ def train_net(cfg):
         batch_end_time = time()
         n_batches = len(train_data_loader) #每个epoch都将所有数据分为不同batch
         for batch_idx, (taxonomy_ids, model_ids, data) in enumerate(train_data_loader): #每次取一个batch
+ 
             data_time.update(time() - batch_end_time)
 
             partial_clouds = data['partial_cloud'].to(device='cuda')
@@ -116,7 +117,7 @@ def train_net(cfg):
 
 
             res, _loss = imnet(partial_clouds, samples, labels)
-            losses.update([_loss.item()*10000])
+            losses.update([_loss.item()*1000])
 
 
             imnet.zero_grad()
@@ -125,7 +126,7 @@ def train_net(cfg):
 
 
             n_itr = (epoch_idx - 1) * n_batches + batch_idx  #迭代次数
-            train_writer.add_scalar('Loss/Batch/L2_loss', _loss.item() * 10000, n_itr)
+            train_writer.add_scalar('Loss/Batch/L2_loss', _loss.item() * 1000, n_itr)
 
 
             batch_time.update(time() - batch_end_time)

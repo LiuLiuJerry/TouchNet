@@ -134,7 +134,7 @@ class ImplicitDataset(torch.utils.data.dataset.Dataset):
         MIN = -0.5
         random_points = np.random.rand(self.num_samplemesh_inout // 4, 3)*length + MIN
         sample_points = np.concatenate([sample_points, random_points], axis=0)
-        np.random.shuffle(sample_points)
+        np.random.shuffle(sample_points) #(N,3)
         
         #label the points
         inside_idx = mesh.contains(sample_points)
@@ -149,9 +149,9 @@ class ImplicitDataset(torch.utils.data.dataset.Dataset):
         outside_points = outside_points[
             :n_s] if n_in > n_s else outside_points[:(self.num_samplemesh_inout-n_in)]
         
-        samples = np.concatenate([inside_points, outside_points], 0)
+        samples = np.concatenate([inside_points, outside_points], 0) #(N,3)
         labels = np.concatenate([np.ones((1, inside_points.shape[0])),
-                                 np.zeros((1,outside_points.shape[0]))], axis=1)
+                                 np.zeros((1,outside_points.shape[0]))], axis=1) #(1,N)
         
         #turn into torch tensor
         samples = torch.Tensor(samples).float()

@@ -20,7 +20,21 @@ class Metrics(object):
         'eval_object': ChamferDistance(ignore_zeros=True),
         'is_greater_better': False,
         'init_value': 32767
-    }]
+    }, {
+        'name': 'ChamferDistance_cloud',
+        'enabled': True,
+        'eval_func': 'cls._get_chamfer_distance_cloud',
+        'eval_object': ChamferDistance(ignore_zeros=True),
+        'is_greater_better': True,
+        'init_value': 0
+    }, 
+    {
+        'name': 'F-Score_cloud',
+        'enabled': True,
+        'eval_func': 'cls._get_f_score',
+        'is_greater_better': True,
+        'init_value': 0
+    }, ]
     
 
     @classmethod
@@ -33,13 +47,20 @@ class Metrics(object):
         return [i['name'] for i in _items]
     
     @classmethod
-    def get(cls, pred, gt):
+    def get(cls, pred, gt, sample_cloud):
+        pt_cloud = sample_cloud[pred[:,-1,:] > 0].unsqueeze(0)#暂时假设BN=1
+        gt_cloud = sample_cloud[gt[:,-1,:] > 0].unsqueeze(0)
+        
         _items = cls.items()
         _values = [0] * len(_items)
         for i, item in enumerate(_items):
-            eval_func = eval(item['eval_func'])
-            _values[i] = eval_func(pred, gt)
-                   
+            if item['name'].find('cloud') > 0:
+                eval_func = eval(item['eval_func'])
+                _values[i] = eval_func(pt_cloud, gt_cloud)
+            else:
+                eval_func = eval(item['eval_func'])
+                _values[i] = eval_func(pred, gt)          
+       
         return _values
     
 
@@ -50,9 +71,36 @@ class Metrics(object):
     @classmethod
     def _get_chamfer_distance(cls, pred, gt):
         chamfer_distance = cls.ITEMS[1]['eval_object']
-        return chamfer_distance(pred,gt).item() * 1000
+        return chamfer_distance(
+            pred.transpose(2,1), gt.transpose(2,1)).item() * 1000
     
+    @classmethod
+    def _get_chamfer_distance_cloud(cls, pred, gt):
+        chamfer_distance = cls.ITEMS[2]['eval_object']
+        return chamfer_distance(pred, gt).item() * 1000
     
+    @classmethod
+    def _get_f_score(cls, pred, gt, th=0.03):
+        """References: https://github.com/lmb-freiburg/what3d/blob/master/util.py"""
+        pred = cls._get_open3d_ptcloud(pred)
+        gt = cls._get_open3d_ptcloud(gt)
+
+        dist1 = pred.compute_point_cloud_distance(gt)
+        dist2 = gt.compute_point_cloud_distance(pred)
+
+        recall = float(sum(d < th for d in dist2)) / float(len(dist2))
+        precision = float(sum(d < th for d in dist1)) / float(len(dist1))
+        return 2 * recall * precision / (recall + precision) if recall + precision else 0
+    
+
+    @classmethod
+    def _get_open3d_ptcloud(cls, tensor):
+        tensor = tensor.squeeze().cpu().numpy()
+        ptcloud = open3d.geometry.PointCloud()
+        ptcloud.points = open3d.utility.Vector3dVector(tensor)
+
+        return ptcloud
+
 
     def __init__(self, metric_name, values):
         self._items = Metrics.items()
