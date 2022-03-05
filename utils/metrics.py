@@ -13,12 +13,18 @@ from extensions.chamfer_dist import ChamferDistance
 
 class Metrics(object):
     ITEMS = [{
-        'name': 'F-Score',
+        'name': 'F-Score_0.01',
         'enabled': True,
         'eval_func': 'cls._get_f_score',
         'is_greater_better': True,
         'init_value': 0
     }, {
+        'name': 'F-Score_0.02',
+        'enabled': True,
+        'eval_func': 'cls._get_f_score',
+        'is_greater_better': True,
+        'init_value': 0
+    },{
         'name': 'ChamferDistance',
         'enabled': True,
         'eval_func': 'cls._get_chamfer_distance',
@@ -33,7 +39,10 @@ class Metrics(object):
         _values = [0] * len(_items)
         for i, item in enumerate(_items):
             eval_func = eval(item['eval_func'])
-            _values[i] = eval_func(pred, gt)
+            if item['name'] is 'F-Score_0.02':
+                _values[i] = eval_func(pred, gt, th=0.02)
+            else:
+                _values[i] = eval_func(pred, gt)
 
         return _values
 
@@ -47,7 +56,7 @@ class Metrics(object):
         return [i['name'] for i in _items]
 
     @classmethod
-    def _get_f_score(cls, pred, gt, th=0.03):
+    def _get_f_score(cls, pred, gt, th=0.01):
         """References: https://github.com/lmb-freiburg/what3d/blob/master/util.py"""
         pred = cls._get_open3d_ptcloud(pred)
         gt = cls._get_open3d_ptcloud(gt)
@@ -69,7 +78,7 @@ class Metrics(object):
 
     @classmethod
     def _get_chamfer_distance(cls, pred, gt):
-        chamfer_distance = cls.ITEMS[1]['eval_object']
+        chamfer_distance = cls.ITEMS[2]['eval_object']
         return chamfer_distance(pred, gt).item() * 1000
 
     def __init__(self, metric_name, values):
