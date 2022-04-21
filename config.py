@@ -40,7 +40,7 @@ __C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到
 # 参数1：subset（train/val）, 参数2：dc['taxonomy_id'], 物体类别的id  参数3：s, 数据id  参数：i, 可能是同一个物体不同的partial？)
 __C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/manager/data/ShapeCompletion/pcd_2048/%s/partial/%s/%s/path2048_%.2d.pcd'
 __C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/manager/data/ShapeCompletion/pcd_2048/%s/complete/%s/%s/01.pcd'
-__C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = '/home/manager/data/ShapeCompletion/pcd_2048/%s/complete/%s/%s/01.obj'
+__C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = '/home/manager/data/ShapeCompletion/pcd_2048/%s/complete/%s/%s/o1_manifold_plus.obj'
 
 #
 # Dataset
@@ -85,7 +85,8 @@ __C.NETWORK                                      = edict()
 __C.NETWORK.N_SAMPLING_POINTS                    = 2048  #没有用到
 __C.NETWORK.GRIDDING_LOSS_SCALES                 = [128]
 __C.NETWORK.GRIDDING_LOSS_ALPHAS                 = [0.1]
-__C.NETWORK.N_SAMPLING_MESHPOINTS                = 2048
+__C.NETWORK.N_SAMPLING_MESHPOINTS                = 4000
+__C.NETWORK.IMPLICIT_MODE                        = 1 # 1:in-out 2:on-off
 
 
 #

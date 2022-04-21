@@ -29,12 +29,18 @@ class Metrics(object):
         'init_value': 0
     }, 
     {
-        'name': 'F-Score_cloud',
+        'name': 'F-Score_cloud_0.01',
         'enabled': True,
         'eval_func': 'cls._get_f_score',
         'is_greater_better': True,
         'init_value': 0
-    }, ]
+    }, {
+        'name': 'F-Score_cloud_0.02',
+        'enabled': True,
+        'eval_func': 'cls._get_f_score',
+        'is_greater_better': True,
+        'init_value': 0
+    }]
     
 
     @classmethod
@@ -48,8 +54,8 @@ class Metrics(object):
     
     @classmethod
     def get(cls, pred, gt, sample_cloud):
-        pt_cloud = sample_cloud[pred[:,-1,:] > 0].unsqueeze(0)#暂时假设BN=1
-        gt_cloud = sample_cloud[gt[:,-1,:] > 0].unsqueeze(0)
+        pt_cloud = sample_cloud[pred[:,-1,:] > 0.5].unsqueeze(0)#暂时假设BN=1
+        gt_cloud = sample_cloud[gt[:,-1,:] > 0.5].unsqueeze(0)
         
         _items = cls.items()
         _values = [0] * len(_items)
@@ -80,7 +86,7 @@ class Metrics(object):
         return chamfer_distance(pred, gt).item() * 1000
     
     @classmethod
-    def _get_f_score(cls, pred, gt, th=0.03):
+    def _get_f_score(cls, pred, gt, th=0.01):
         """References: https://github.com/lmb-freiburg/what3d/blob/master/util.py"""
         pred = cls._get_open3d_ptcloud(pred)
         gt = cls._get_open3d_ptcloud(gt)

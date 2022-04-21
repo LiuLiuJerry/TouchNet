@@ -16,7 +16,7 @@ from models.gr_implicitnet import GRImplicitNet
 from utils.average_meter import AverageMeter
 from utils.ImplicitMetrics import Metrics
 
-from utils.ImplicitDataLoader import ImplicitDataset
+from utils.ImplicitDataLoader import ImplicitDataset_inout, ImplicitDataset_onoff
 
 import open3d
 import numpy as np
@@ -29,7 +29,10 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
 
     if test_data_loader is None:
         # Set up data loader
-        test_dataset = ImplicitDataset(cfg, phase='test')
+        if cfg.NETWORK.IMPLICIT_MODE == 1:
+            test_dataset = ImplicitDataset_inout(cfg, phase='test')
+        elif cfg.NETWORK.IMPLICIT_MODE == 2:
+            test_dataset = ImplicitDataset_onoff(cfg, phase='test')
         test_data_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                                        batch_size=1,
                                                        num_workers=cfg.CONST.NUM_WORKERS,
@@ -74,20 +77,29 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
 
             _metrics = Metrics.get(res, labels, samples)
             test_metrics.update(_metrics) #更新度量方法
+            print("metrics: ", _metrics)
 
             if taxonomy_id not in category_metrics:
                 category_metrics[taxonomy_id] = AverageMeter(Metrics.names())
             category_metrics[taxonomy_id].update(_metrics)
+            
+            #判断是否每次都预测得到相同值
+            if model_idx > 0:
+                y_pre_cpu = y_cpu.copy()
+                y_cpu = res.squeeze(1).detach().cpu().numpy()
+                y_same = np.argwhere(y_cpu == y_pre_cpu) #输出比较少说明采样点基本不一致，是对的
+                y_in = np.argwhere(y_cpu>0.5)
+                print(y_same)
 
             #前3个模型渲染成图，作为tensorboard的展示
             if test_writer is not None and model_idx < 3:
                 y_cpu = res.squeeze(1).cpu().numpy()
                 samples_cpu = samples.cpu().numpy()
-                ptcloud_cpu = samples_cpu[y_cpu > 0]
+                ptcloud_cpu = samples_cpu[y_cpu > 0.5]
                 ptcloud_img = utils.helpers.get_ptcloud_img(ptcloud_cpu)
                 test_writer.add_image('Model%02d/SparseReconstruction' % model_idx, ptcloud_img, epoch_idx, dataformats='HWC')
                 labels_cpu = labels.squeeze(1).cpu().numpy()
-                gtcloud_cpu = samples_cpu[labels_cpu>0]
+                gtcloud_cpu = samples_cpu[labels_cpu>0.5]
                 gt_ptcloud_img = utils.helpers.get_ptcloud_img(gtcloud_cpu)
                 test_writer.add_image('Model%02d/GroundTruth' % model_idx, gt_ptcloud_img, epoch_idx, dataformats='HWC')
 
@@ -103,16 +115,17 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
                 # predicted labels
                 y_cpu = res.squeeze(1).cpu().numpy()
                 samples_cpu = samples.cpu().numpy()
-                ptcloud_cpu = samples_cpu[y_cpu > 0]
+                ptcloud_cpu = samples_cpu[y_cpu > 0.5]
                 # ground truth labels
                 labels_cpu = labels.squeeze(1).cpu().numpy()
-                gtcloud_cpu = samples_cpu[labels_cpu>0]
+                gtcloud_cpu = samples_cpu[labels_cpu > 0.5]
                 
                 utils.io.IO.put(path_save + "predicted.ply", ptcloud_cpu)
                 utils.io.IO.put(path_save + "gt.ply", gtcloud_cpu)
                 utils.io.IO.put(path_save + "partial.ply", data['partial_cloud'].cpu().numpy()[0])
                 print("test point cloud saved: %s"%(path_save + "%.2d.ply"%(model_idx%4)))
 
+        
 
     # Print testing results
     print('============================ TEST RESULTS ============================')

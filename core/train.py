@@ -22,16 +22,20 @@ from utils.average_meter import AverageMeter
 from utils.metrics import Metrics
 
 from models.gr_implicitnet import GRImplicitNet
-from utils.ImplicitDataLoader import ImplicitDataset
+from utils.ImplicitDataLoader import ImplicitDataset_inout, ImplicitDataset_onoff
 
 def train_net(cfg):
     # Enable the inbuilt cudnn auto-tuner to find the best algorithm to use
     torch.backends.cudnn.benchmark = True
 
     # Set up data loader
-    train_dataset = ImplicitDataset(cfg, phase='train')
-    test_dataset = ImplicitDataset(cfg, phase='test')
-    
+    if cfg.NETWORK.IMPLICIT_MODE == 1:
+        train_dataset = ImplicitDataset_inout(cfg, phase='train')
+        test_dataset = ImplicitDataset_inout(cfg, phase='test')
+    elif cfg.NETWORK.IMPLICIT_MODE == 2:
+        train_dataset = ImplicitDataset_onff(cfg, phase='train')
+        test_dataset = ImplicitDataset_onff(cfg, phase='test')
+        
     #读取点云
     train_data_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                                     batch_size=cfg.TRAIN.BATCH_SIZE,
@@ -138,6 +142,7 @@ def train_net(cfg):
                           ['%.4f' % l for l in losses.val()]))
         
             if cfg.b_save and epoch_idx == cfg.TRAIN.N_EPOCHS :
+
                 # predicted labels
                 y_cpu = res.squeeze(1).detach().cpu().numpy()
                 samples_cpu = samples.cpu().numpy()
@@ -150,12 +155,12 @@ def train_net(cfg):
                     if not os.path.exists(path_save):
                         os.makedirs(path_save)
 
-                    ptcloud_cpu = samples_cpu[0][y_cpu[0] > 0]
-                    gtcloud_cpu = samples_cpu[0][labels_cpu[0] > 0]
+                    ptcloud_cpu = samples_cpu[0][y_cpu[0] > 0.5]
+                    gtcloud_cpu = samples_cpu[0][labels_cpu[0] > 0.5]
                     
                     utils.io.IO.put(path_save + "gt.ply", gtcloud_cpu)
                     utils.io.IO.put(path_save + "partial.ply", data['partial_cloud'].cpu().numpy()[0])
-                    utils.io.IO.put(path_save + "predicted_%d.ply", ptcloud_cpu)
+                    utils.io.IO.put(path_save + "predicted_%d.ply"%(i), ptcloud_cpu)
                 
                     print("train point cloud saved: %s"%(path_save + "ep%.2d_%.2d.ply"%(epoch_idx, i)))
 
