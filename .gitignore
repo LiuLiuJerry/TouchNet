@@ -108,5 +108,6 @@ venv.bak/
 
 # Output
 output/
-output*
+output-mug/
+output*/
 #output/models/
