@@ -32,15 +32,25 @@ __C.DATASETS.KITTI.CATEGORY_FILE_PATH            = './datasets/KITTI.json'
 __C.DATASETS.KITTI.PARTIAL_POINTS_PATH           = '/home/SENSETIME/xiehaozhe/Datasets/KITTI/cars/%s.pcd'
 __C.DATASETS.KITTI.BOUNDING_BOX_FILE_PATH        = '/home/SENSETIME/xiehaozhe/Datasets/KITTI/bboxes/%s.txt'
 
-#Jerry: ShapeNetTouch config
-__C.DATASETS.SHAPENETTOUCH                            = edict()
+#Jerry: ShapeNetTouch config  --mug
+'''__C.DATASETS.SHAPENETTOUCH                            = edict()
 __C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = './datasets/ShapeNetTouch.json'
-__C.DATASETS.SHAPENETTOUCH.N_RENDERINGS               = 4 #一个物体对应8个rendering？
+__C.DATASETS.SHAPENETTOUCH.N_RENDERINGS               = 4 #一个物体对应4个rendering
 __C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到？
-# 参数1：subset（train/val）, 参数2：dc['taxonomy_id'], 物体类别的id  参数3：s, 数据id  参数：i, 可能是同一个物体不同的partial？)
+# --参数1：subset（train/val）, 参数2：dc['taxonomy_id'], 物体类别的id  参数3： 数据id  参数4：i,同一个物体不同的exploration
 __C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/manager/data/ShapeCompletion/pcd_2048/%s/partial/%s/%s/path2048_%.2d.pcd'
 __C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/manager/data/ShapeCompletion/pcd_2048/%s/complete/%s/%s/01.pcd'
-__C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = '/home/manager/data/ShapeCompletion/pcd_2048/%s/complete/%s/%s/o1_manifold_plus.obj'
+__C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = '/home/manager/data/ShapeCompletion/pcd_2048/%s/complete/%s/%s/o1_manifold_plus.obj'''
+
+# airplane
+# --参数1：subset（train/val）, 参数2：dc['taxonomy_id'], 物体类别的id  参数3： 数据id  参数4：i,同一个物体不同的exploration
+__C.DATASETS.SHAPENETTOUCH                            = edict()
+__C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = '/home/manager/data/ShapeCompletion/Airplane/ShapeNetTouch.json'
+__C.DATASETS.SHAPENETTOUCH.N_RENDERINGS               = 4 #一个物体对应4个rendering
+__C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到？
+__C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/manager/data/ShapeCompletion/Airplane/%s/partial/%s/%s/path2048_%.2d.pcd'
+__C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/manager/data/ShapeCompletion/Airplane/%s/complete/%s/%s/01.pcd'
+__C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = '/home/manager/data/ShapeCompletion/Airplane/%s/complete/%s/%s/01.obj'
 
 #
 # Dataset
@@ -93,7 +103,7 @@ __C.NETWORK.IMPLICIT_MODE                        = 1 # 1:in-out 2:on-off
 # Train
 #
 __C.TRAIN                                        = edict()
-__C.TRAIN.BATCH_SIZE                             = 4 #32
+__C.TRAIN.BATCH_SIZE                             = 1 #32
 __C.TRAIN.N_EPOCHS                               = 200
 __C.TRAIN.SAVE_FREQ                              = 25
 __C.TRAIN.LEARNING_RATE                          = 1e-4 #1e-4
@@ -106,4 +116,4 @@ __C.TRAIN.WEIGHT_DECAY                           = 0
 # Test
 #
 __C.TEST                                         = edict()
-__C.TEST.METRIC_NAME                             = 'ChamferDistance'
+__C.TEST.METRIC_NAME                             = 'F-Score_cloud_0.01'

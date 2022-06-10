@@ -28,17 +28,17 @@ from core.inference import inference_net
 
 #Jerry
 from utils.loss import VLossFlag
-'/home/manager/data/ShapeCompletion/dataset_1213/train_set/1c38ca26c65826804c35e2851444dc2f/models/model_normalized.obj'
+
 
 
 def get_args_from_command_line():
     parser = argparse.ArgumentParser(description='The argument parser of R2Net runner')
     parser.add_argument('--gpu', dest='gpu_id', help='GPU device to use', default=cfg.CONST.DEVICE, type=str)
     parser.add_argument('--test', dest='test', help='Test neural networks', action='store_true', default=False)
-    parser.add_argument('--inference', dest='inference', help='Inference for benchmark', action='store_true', default=True)
-    #parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default=None) 
-    parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default=
-                        '/home/manager/codes/TouchCompletion/shape-repair/output/checkpoints/ckpt-best.pth') 
+    parser.add_argument('--inference', dest='inference', help='Inference for benchmark', action='store_true', default=False)
+    parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default=None) 
+    #parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default=
+    #                    '/home/manager/codes/TouchCompletion/shape-repair/output/checkpoints/ckpt-best.pth') 
     parser.add_argument('--save', dest="save", help='save results during test', default=True) 
     parser.add_argument('--mlp_dim', dest="mlp_dim", default=[16, 64, 128, 32, 1], type=int)
     args = parser.parse_args()
@@ -55,6 +55,7 @@ def main():
         cfg.CONST.WEIGHTS = args.weights
 
     cfg.b_save = args.save
+    cfg.b_reconstruction = 0
     #network parameters
     cfg.mlp_dim = args.mlp_dim
     cfg.no_residual = True

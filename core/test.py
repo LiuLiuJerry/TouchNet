@@ -52,7 +52,10 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
 
     # Switch models to evaluation mode
     imnet.eval() #禁用BN和dropout
-
+    # set cuda
+    cuda = torch.device('cuda:%d' % 0) if torch.cuda.is_available() else torch.device('cpu')
+    
+    
     # Testing loop
     n_samples = len(test_data_loader)
     
@@ -98,6 +101,8 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
                 ptcloud_cpu = samples_cpu[y_cpu > 0.5]
                 ptcloud_img = utils.helpers.get_ptcloud_img(ptcloud_cpu)
                 test_writer.add_image('Model%02d/SparseReconstruction' % model_idx, ptcloud_img, epoch_idx, dataformats='HWC')
+                partial_img = utils.helpers.get_ptcloud_img(data['partial_cloud'][0])
+                test_writer.add_image('Model%02d/TouchExploration' % model_idx, partial_img, epoch_idx, dataformats='HWC')
                 labels_cpu = labels.squeeze(1).cpu().numpy()
                 gtcloud_cpu = samples_cpu[labels_cpu>0.5]
                 gt_ptcloud_img = utils.helpers.get_ptcloud_img(gtcloud_cpu)
@@ -120,12 +125,21 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
                 labels_cpu = labels.squeeze(1).cpu().numpy()
                 gtcloud_cpu = samples_cpu[labels_cpu > 0.5]
                 
-                utils.io.IO.put(path_save + "predicted.ply", ptcloud_cpu)
+                utils.io.IO.put(path_save + "predicted_%.2d.ply"%(model_idx%4), ptcloud_cpu)
                 utils.io.IO.put(path_save + "gt.ply", gtcloud_cpu)
-                utils.io.IO.put(path_save + "partial.ply", data['partial_cloud'].cpu().numpy()[0])
+                utils.io.IO.put(path_save + "partial_%.2d.ply"%(model_idx%4), data['partial_cloud'].cpu().numpy()[0])
                 print("test point cloud saved: %s"%(path_save + "%.2d.ply"%(model_idx%4)))
 
-        
+            #output reconstruction mesh
+            if cfg.b_reconstruction:
+                output_folder = "output/models/test/%s/%s/"%(taxonomy_id, model_id)
+                if not os.path.exists(output_folder):
+                    os.makedirs(output_folder)
+                    
+                    
+                save_path = os.path.join(output_folder, 'predicted_%d.obj'%(model_idx))
+                
+                gen_mesh(cfg, imnet, cuda, data, save_path, use_octree=True)
 
     # Print testing results
     print('============================ TEST RESULTS ============================')

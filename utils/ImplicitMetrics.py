@@ -13,14 +13,8 @@ class Metrics(object):
         'eval_object': nn.MSELoss(),
         'is_greater_better': True,
         'init_value' : 5000
-    },{
-        'name': 'ChamferDistance',
-        'enabled': True,
-        'eval_func': 'cls._get_chamfer_distance',
-        'eval_object': ChamferDistance(ignore_zeros=True),
-        'is_greater_better': False,
-        'init_value': 32767
-    }, {
+    },
+    {
         'name': 'ChamferDistance_cloud',
         'enabled': True,
         'eval_func': 'cls._get_chamfer_distance_cloud',
@@ -74,15 +68,15 @@ class Metrics(object):
     def _get_mse(cls, pred, gt):
         return cls.ITEMS[0]['eval_object'](gt, pred).item() * 1000
     
-    @classmethod
+    '''@classmethod
     def _get_chamfer_distance(cls, pred, gt):
         chamfer_distance = cls.ITEMS[1]['eval_object']
         return chamfer_distance(
-            pred.transpose(2,1), gt.transpose(2,1)).item() * 1000
+            pred.transpose(2,1), gt.transpose(2,1)).item() * 1000'''
     
     @classmethod
     def _get_chamfer_distance_cloud(cls, pred, gt):
-        chamfer_distance = cls.ITEMS[2]['eval_object']
+        chamfer_distance = cls.ITEMS[1]['eval_object']
         return chamfer_distance(pred, gt).item() * 1000
     
     @classmethod

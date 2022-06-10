@@ -33,8 +33,8 @@ def train_net(cfg):
         train_dataset = ImplicitDataset_inout(cfg, phase='train')
         test_dataset = ImplicitDataset_inout(cfg, phase='test')
     elif cfg.NETWORK.IMPLICIT_MODE == 2:
-        train_dataset = ImplicitDataset_onff(cfg, phase='train')
-        test_dataset = ImplicitDataset_onff(cfg, phase='test')
+        train_dataset = ImplicitDataset_onoff(cfg, phase='train')
+        test_dataset = ImplicitDataset_onoff(cfg, phase='test')
         
     #读取点云
     train_data_loader = torch.utils.data.DataLoader(dataset=train_dataset,
@@ -104,6 +104,7 @@ def train_net(cfg):
 
         batch_end_time = time()
         n_batches = len(train_data_loader) #每个epoch都将所有数据分为不同batch
+        
         for batch_idx, (taxonomy_ids, model_ids, data) in enumerate(train_data_loader): #每次取一个batch
  
             data_time.update(time() - batch_end_time)
@@ -159,11 +160,11 @@ def train_net(cfg):
                     gtcloud_cpu = samples_cpu[0][labels_cpu[0] > 0.5]
                     
                     utils.io.IO.put(path_save + "gt.ply", gtcloud_cpu)
-                    utils.io.IO.put(path_save + "partial.ply", data['partial_cloud'].cpu().numpy()[0])
+                    utils.io.IO.put(path_save + "partial_%d.ply"%(i), data['partial_cloud'].cpu().numpy()[0])
                     utils.io.IO.put(path_save + "predicted_%d.ply"%(i), ptcloud_cpu)
                 
                     print("train point cloud saved: %s"%(path_save + "ep%.2d_%.2d.ply"%(epoch_idx, i)))
-
+        
 
         grnet_lr_scheduler.step() #更新学习率
         epoch_end_time = time()
@@ -175,7 +176,7 @@ def train_net(cfg):
         logging.info(
             '[Epoch %d/%d] EpochTime = %.3f (s) Losses = %s' %
             (epoch_idx, cfg.TRAIN.N_EPOCHS, epoch_end_time - epoch_start_time, ['%.4f' % l for l in losses.avg()]))
-
+        
         # Validate the current model 每个epoch验证一次
         metrics = test_net(cfg, epoch_idx, val_data_loader, val_writer, imnet)
 

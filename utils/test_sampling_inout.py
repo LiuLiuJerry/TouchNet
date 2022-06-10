@@ -103,7 +103,7 @@ def draw_ptcloud(ptcloud, mesh):
     
 
 #root_dir = '/home/manager/Desktop/model_manifoldplus.obj'
-root_dir = '/home/manager/Desktop/model_manifoldplus.obj'
+root_dir = '/home/manager/data/ShapeCompletion/pcd_2048/train/complete/02876657/4301fe10764677dcdf0266d76aa42ba/o1_manifold_plus.obj'
 mesh = trimesh.load(root_dir, process=False)
 
 if not mesh.is_watertight:

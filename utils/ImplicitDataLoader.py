@@ -21,7 +21,7 @@ def load_trimesh(root_dir):
     #for i, f in enumerate(folders):
     #    sub_name = f
     #    meshs[sub_name] = trimesh.load(os.path.join(root_dir, f, '%s_100k.obj' % sub_name))
-    mesh = trimesh.load(root_dir, process=False)
+    mesh = trimesh.load(root_dir, force='mesh', process=False)
     '''if not mesh.is_watertight:
         face_idx = trimesh.repair.broken_faces(mesh)
         trimesh.repair.fill_holes(mesh)
@@ -96,7 +96,7 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
         file_len = 0
         for dc in self.dataset_categories:
             logging.info('Collecting files of Taxonomy [ID=%s, Name=%s]' % (dc['taxonomy_id'], dc['taxonomy_name']))
-            samples = dc[subset]
+            samples = dc[subset][:20]
             
             
             file_len = file_len + len(samples)

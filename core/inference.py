@@ -29,7 +29,7 @@ def inference_net(cfg):
 
     test_data_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                                        batch_size=1,
-                                                       num_workers=1, #cfg.CONST.NUM_WORKERS,
+                                                       num_workers=4, #cfg.CONST.NUM_WORKERS,
                                                        pin_memory=True,
                                                        shuffle=False)
 
@@ -77,11 +77,11 @@ def inference_net(cfg):
             logging.info('Test[%d/%d] Taxonomy = %s Sample = %s File = %s' %
                          (model_idx + 1, n_samples, taxonomy_id, model_id, output_file_path))'''
             
-            output_folder = "output/models/test/%s/%s/"%(taxonomy_id, model_id)
+            output_folder = "output/models/val/%s/%s/"%(taxonomy_id, model_id)
             if not os.path.exists(output_folder):
                 os.makedirs(output_folder)
                 
                 
-            save_path = os.path.join(output_folder, 'predicted.obj')
+            save_path = os.path.join(output_folder, 'predicted_%d.obj'%(model_idx))
             
             gen_mesh(cfg, imnet, cuda, data, save_path, use_octree=True)
