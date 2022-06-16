@@ -26,6 +26,7 @@ def load_trimesh(root_dir):
         face_idx = trimesh.repair.broken_faces(mesh)
         trimesh.repair.fill_holes(mesh)
         print('hole filled')'''
+    print("number of faces: %d"%(len(mesh.triangles)))
         
     return mesh
 
@@ -96,7 +97,7 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
         file_len = 0
         for dc in self.dataset_categories:
             logging.info('Collecting files of Taxonomy [ID=%s, Name=%s]' % (dc['taxonomy_id'], dc['taxonomy_name']))
-            samples = dc[subset][:20]
+            samples = dc[subset] #[:100]
             
             
             file_len = file_len + len(samples)
@@ -199,11 +200,13 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
         data = {}
         for ri in self.options['required_items']:
             if ri == 'sampled_gt_points':#获取采样数据和label
+                print("sampling surface points: ", data_dc['model_id'])
                 sample_data = self.select_sampling_method(data_dc['gt_mesh'])
                 #from mesh_to_sdf import sample_sdf_near_surface
                 #sample_data, label = sample_sdf_near_surface(data_dc['gt_mesh'], number_of_points=5000)
                 #data['samples'] = sample_data
                 #data['labels'] = label
+                print("sampling done")
                 data.update(sample_data)
             else:
                 data[ri] = data_dc[ri]

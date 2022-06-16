@@ -88,6 +88,8 @@ class Metrics(object):
         dist1 = pred.compute_point_cloud_distance(gt)
         dist2 = gt.compute_point_cloud_distance(pred)
 
+        print("length of dist1:", len(dist1) )
+
         recall = float(sum(d < th for d in dist2)) / float(len(dist2))
         precision = float(sum(d < th for d in dist1)) / float(len(dist1))
         return 2 * recall * precision / (recall + precision) if recall + precision else 0

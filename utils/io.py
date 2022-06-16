@@ -101,7 +101,9 @@ class IO:
     @classmethod
     def _read_pcd(cls, file_path):
         if mc_client is None:
+            print("reading path files : %s"%(file_path))
             pc = open3d.io.read_point_cloud(file_path)
+            print("reading file %s finished"%(file_path))
             ptcloud = np.array(pc.points)
         else:
             pyvector = mc.pyvector()
