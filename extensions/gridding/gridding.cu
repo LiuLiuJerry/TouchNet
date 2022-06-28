@@ -23,7 +23,11 @@ __device__ int compute_index(
   int offset_x, int offset_y, int offset_z, int len_y, int len_z) {
   return offset_x * len_y * len_z + offset_y * len_z + offset_z;
 }
+<<<<<<< HEAD
 //根据线性插值计算权重
+=======
+
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
 __device__ float compute_weight(float x, float x0) { return 1 - abs(x - x0); }
 
 __global__ void gridding_kernel(int n_grid_vertices,
@@ -51,7 +55,11 @@ __global__ void gridding_kernel(int n_grid_vertices,
     float pt_y = ptcloud[j * 3 + 1];
     float pt_z = ptcloud[j * 3 + 2];
 
+<<<<<<< HEAD
     int lower_x = std::floor(pt_x); //此处应该已经除以网格大小了，因此直接取整数即可得到其在第几个网格中
+=======
+    int lower_x = std::floor(pt_x); //此处应该已经处以网格大小了，因此直接取整数即可得到其在第几个网格中
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
     int upper_x = std::ceil(pt_x);
     if (lower_x == upper_x) {
       upper_x += 1;
@@ -134,9 +142,13 @@ __global__ void gridding_kernel(int n_grid_vertices,
   int gvtx_idx = 0;
   for (int j = index; j < n_pts; j += stride) {
     // LLL -> Lower X, Lower Y, Lower Z
+<<<<<<< HEAD
     // 定义了一种特征传递方法，即将顶点对周围的每个网格的x y z轴的权重乘起来，加到网格对应的权重
     // 存储数组grid_weights[gvtx_idx]
     gvtx_idx = grid_pt_indexes[j * 8 + 0]; 
+=======
+    gvtx_idx = grid_pt_indexes[j * 8 + 0]; //将每个网格顶点x y z轴的权重乘起来， 加到网格对应的权重存储grid_weights上
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
     atomicAdd(&(grid_weights[gvtx_idx]), grid_pt_weights[j * 24 + 0] *
                                            grid_pt_weights[j * 24 + 1] *
                                            grid_pt_weights[j * 24 + 2]);
@@ -192,7 +204,11 @@ std::vector<torch::Tensor> gridding_cuda_forward(float min_x,
   int len_y           = max_y - min_y + 1;
   int len_z           = max_z - min_z + 1;
   int n_grid_vertices = len_x * len_y * len_z;
+<<<<<<< HEAD
   //声明变量
+=======
+
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
   torch::Tensor grid_weights =
     torch::zeros({batch_size, n_grid_vertices}, torch::CUDA(torch::kFloat));
   torch::Tensor grid_pt_weights =
@@ -232,6 +248,7 @@ __global__ void gridding_grad_kernel(int n_grid_vertices,
   for (int j = index; j < n_pts; j += stride) {
     // Compute gradient for the corresponding positions, a loop for 8 points
     // LLL -> Lower X, Lower Y, Lower Z
+<<<<<<< HEAD
     // (x,y,z)每一维度都分别使用重心坐标插值
     gvtx_idx  = grid_pt_indexes[j * 8 + 0];
     grad_vtx  = grad_grid[gvtx_idx]; //点云中第j个点所对应的第1个网格点的梯度
@@ -240,6 +257,13 @@ __global__ void gridding_grad_kernel(int n_grid_vertices,
     z_weights = grid_pt_weights[j * 24 + 2];
     //链式法则，后面一层的梯度为grad_vtx，这里相当将[1-(p_x-low_x)]对p_x求导，得到-1
     //维度上，从1维拆解为3维
+=======
+    gvtx_idx  = grid_pt_indexes[j * 8 + 0];
+    grad_vtx  = grad_grid[gvtx_idx];
+    x_weights = grid_pt_weights[j * 24 + 0];
+    y_weights = grid_pt_weights[j * 24 + 1];
+    z_weights = grid_pt_weights[j * 24 + 2];
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
     atomicAdd(&(grad_ptcloud[j * 3 + 0]), -grad_vtx * y_weights * z_weights); //根据点云中的点到网格点的权重将网格点的grad拆分到每个点云上
     atomicAdd(&(grad_ptcloud[j * 3 + 1]), -grad_vtx * x_weights * z_weights);
     atomicAdd(&(grad_ptcloud[j * 3 + 2]), -grad_vtx * x_weights * y_weights);

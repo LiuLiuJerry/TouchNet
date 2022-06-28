@@ -30,6 +30,14 @@ def load_trimesh(root_dir):
         
     return mesh
 
+def load_gt(sample_path_in, sample_path_out):
+    mesh_in = trimesh.load(sample_path_in, force='mesh', process=False)
+    mesh_out = trimesh.load(sample_path_out, force='mesh', process=False)
+    points = np.concatenate([mesh_in.vertices, mesh_out.vertices], axis = 0).astype(np.float32)
+
+    
+    return points, len(mesh_in.vertices), len(mesh_out.vertices)
+
 #in this version the dataset is represented as 0-inside, 1-outside
 class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
     def __init__(self, cfg, phase='train'):
@@ -97,25 +105,38 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
         file_len = 0
         for dc in self.dataset_categories:
             logging.info('Collecting files of Taxonomy [ID=%s, Name=%s]' % (dc['taxonomy_id'], dc['taxonomy_name']))
-            samples = dc[subset] #[:100]
+            samples = dc[subset]#[:20]
             
             
             file_len = file_len + len(samples)
             for s in tqdm(samples, leave=False): #遍历该类的全部文件
                 
                 gt_mesh_path = cfg.DATASETS.SHAPENETTOUCH.MESH_PATH % (subset, dc['taxonomy_id'], s)
-                gt_mesh =  load_trimesh(gt_mesh_path)
+                #gt_mesh =  load_trimesh(gt_mesh_path)
                 
+
+                data_dc = {}
+                data_dc['taxonomy_id'] = dc['taxonomy_id']
+                data_dc['model_id'] = s
+                data_dc['partial_cloud'] = []
+                data_dc['samples'] = []
+                data_dc['labels'] = []
                 for i in range(n_renderings):
-                    data_dc = {}
-                    data_dc['taxonomy_id'] = dc['taxonomy_id']
-                    data_dc['model_id'] = s
-                    
+
                     partial_path = cfg.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH%(subset, dc['taxonomy_id'], s, i)
-                    data_dc['partial_cloud'] = IO.get(partial_path).astype(np.float32)
-                    data_dc['gt_mesh'] = gt_mesh
+                    partial_tmp = IO.get(partial_path).astype(np.float32)
+                    data_dc['partial_cloud'].append(partial_tmp)
+                    #data_dc['gt_mesh'] = gt_mesh
                     
-                    data_list.append(data_dc)
+                    sample_path_in = cfg.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_IN%(subset, dc['taxonomy_id'], s, i)
+                    sample_path_out = cfg.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_OUT%(subset, dc['taxonomy_id'], s, i)
+                    samples_tmp, n_in, n_out = load_gt(sample_path_in, sample_path_out)
+                    labels_tmp = np.concatenate([np.ones((1,n_in)), np.zeros((1,n_out))], axis=1)
+
+                    data_dc['samples'].append(samples_tmp)
+                    data_dc['labels'].append(labels_tmp)
+                    
+                data_list.append(data_dc)
             
         logging.info('Complete collecting files of the dataset. Total files:%d' % file_len)
 
@@ -126,6 +147,7 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
             random.seed(1991)
             np.random.seed(1991)
             torch.manual_seed(1991)'''
+    
             
         surface_points, _ = trimesh.sample.sample_surface(mesh, 4*self.num_samplemesh_inout)
         sample_points = surface_points + np.random.normal(scale=self.cfg.SAMPLING_SIGMA, size=surface_points.shape)
@@ -199,19 +221,33 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
         data_dc = self.data_list[index]
         data = {}
         for ri in self.options['required_items']:
+            rand_ii = np.random.randint(0, 4, 3)
             if ri == 'sampled_gt_points':#获取采样数据和label
-                print("sampling surface points: ", data_dc['model_id'])
-                sample_data = self.select_sampling_method(data_dc['gt_mesh'])
-                #from mesh_to_sdf import sample_sdf_near_surface
-                #sample_data, label = sample_sdf_near_surface(data_dc['gt_mesh'], number_of_points=5000)
-                #data['samples'] = sample_data
-                #data['labels'] = label
-                print("sampling done")
+                if data_dc.__contains__('samples') and data_dc.__contains__('labels'):
+                    s_idx = np.arange(self.num_samplemesh_inout)
+                    np.random.shuffle(s_idx)
+                    #print("sampling shape ", data_dc['samples'].shape, data_dc['labels'].shape) 
+                    samples = data_dc['samples'][rand_ii[0]][s_idx,:]
+                    labels = data_dc['labels'][rand_ii[1]][:,s_idx]
+                    #print("sampling shape ", samples.shape, labels.shape)
+                    #turn into torch tensor
+                    samples = torch.Tensor(samples).float()
+                    labels  = torch.Tensor(labels).float()
+                    sample_data = {
+                        'samples': samples,
+                        'labels' : labels
+                    }
+                else:
+                    #print("sampling surface points: ", data_dc['model_id'])
+                    sample_data = self.select_sampling_method(data_dc['gt_mesh'])
+
                 data.update(sample_data)
+            elif ri == 'partial_cloud':
+                data['partial_cloud'] = data_dc['partial_cloud'][rand_ii[2]]
             else:
                 data[ri] = data_dc[ri]
                 
-        print(data_dc['taxonomy_id'])
+        #print(data_dc['taxonomy_id'])
         
         if self.transforms is not None:
             data = self.transforms(data)
@@ -383,7 +419,7 @@ class ImplicitDataset_onoff(torch.utils.data.dataset.Dataset):
             else:
                 data[ri] = data_dc[ri]
                 
-        print(data_dc['taxonomy_id'])
+        #print(data_dc['taxonomy_id'])
             
         if self.transforms is not None:
             data = self.transforms(data)

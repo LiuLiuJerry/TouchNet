@@ -32,6 +32,7 @@ __C.DATASETS.KITTI.CATEGORY_FILE_PATH            = './datasets/KITTI.json'
 __C.DATASETS.KITTI.PARTIAL_POINTS_PATH           = '/home/SENSETIME/xiehaozhe/Datasets/KITTI/cars/%s.pcd'
 __C.DATASETS.KITTI.BOUNDING_BOX_FILE_PATH        = '/home/SENSETIME/xiehaozhe/Datasets/KITTI/bboxes/%s.txt'
 
+<<<<<<< HEAD
 #Jerry: ShapeNetTouch config  --mug
 '''__C.DATASETS.SHAPENETTOUCH                            = edict()
 __C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = './datasets/ShapeNetTouch.json'
@@ -50,7 +51,19 @@ __C.DATASETS.SHAPENETTOUCH.N_RENDERINGS               = 4 #一个物体对应4�
 __C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到？
 __C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/manager/data/ShapeCompletion/Airplane/%s/partial/%s/%s/path2048_%.2d.pcd'
 __C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/manager/data/ShapeCompletion/Airplane/%s/complete/%s/%s/01.pcd'
-__C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = '/home/manager/data/ShapeCompletion/Airplane/%s/complete/%s/%s/simplified_dpt4.obj'
+__C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = '/home/manager/data/ShapeCompletion/Airplane/%s/complete/%s/%s/01.obj'
+__C.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_IN             = '/home/manager/data/ShapeCompletion/Airplane/%s/complete/%s/%s/sampled_point_in_%d.obj'
+__C.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_OUT            = '/home/manager/data/ShapeCompletion/Airplane/%s/complete/%s/%s/sampled_point_out_%d.obj'
+=======
+#Jerry: ShapeNetTouch config
+__C.DATASETS.SHAPENETTOUCH                           = edict()
+__C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = './datasets/ShapeNetTouch.json'
+__C.DATASETS.SHAPENETTOUCH.N_RENDERINGS        = 4 #一个物体对应8个rendering？
+__C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到？
+# 参数1：subset（train/val）, 参数2：dc['taxonomy_id'],物体类别的id  参数3：s,数据id  参数：i，可能是同一个物体不同的partial？)
+__C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/manager/data/ShapeCompletion/pcd_2048/%s/partial/%s/%s/path2048_%.2d.pcd'
+__C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/manager/data/ShapeCompletion/pcd_2048/%s/complete/%s/%s/01.pcd'
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
 
 #
 # Dataset
@@ -70,7 +83,11 @@ __C.b_save = False
 #
 __C.CONST                                        = edict()
 __C.CONST.DEVICE                                 = '0'
+<<<<<<< HEAD
 __C.CONST.NUM_WORKERS                            = 4
+=======
+__C.CONST.NUM_WORKERS                            = 8
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
 __C.CONST.N_INPUT_POINTS                         = 2048   #目标输入的点云点的数目
 
 #
@@ -85,7 +102,11 @@ __C.DIR.OUT_PATH                                 = './output'
 __C.MEMCACHED                                    = edict()
 __C.MEMCACHED.ENABLED                            = False
 __C.MEMCACHED.LIBRARY_PATH                       = '/mnt/lustre/share/pymc/py3'
+<<<<<<< HEAD
 __C.MEMCACHED.SERVER_CONFIG                      = '/mnt/lustre/share/memcached_client/server_list.conf'
+=======
+__C.MEMCACHED.SERVER_CONFIG                     = '/mnt/lustre/share/memcached_client/server_list.conf'
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
 __C.MEMCACHED.CLIENT_CONFIG                      = '/mnt/lustre/share/memcached_client/client.conf'
 
 #
@@ -95,19 +116,30 @@ __C.NETWORK                                      = edict()
 __C.NETWORK.N_SAMPLING_POINTS                    = 2048  #没有用到
 __C.NETWORK.GRIDDING_LOSS_SCALES                 = [128]
 __C.NETWORK.GRIDDING_LOSS_ALPHAS                 = [0.1]
+<<<<<<< HEAD
 __C.NETWORK.N_SAMPLING_MESHPOINTS                = 4000
 __C.NETWORK.IMPLICIT_MODE                        = 1 # 1:in-out 2:on-off
 
+=======
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
 
 #
 # Train
 #
 __C.TRAIN                                        = edict()
+<<<<<<< HEAD
 __C.TRAIN.BATCH_SIZE                             = 4 #32
-__C.TRAIN.N_EPOCHS                               = 200
+__C.TRAIN.N_EPOCHS                               = 500
 __C.TRAIN.SAVE_FREQ                              = 25
 __C.TRAIN.LEARNING_RATE                          = 1e-4 #1e-4
 __C.TRAIN.LR_MILESTONES                          = [] # [15,50,80]
+=======
+__C.TRAIN.BATCH_SIZE                             = 4#4 #32
+__C.TRAIN.N_EPOCHS                               = 200#150
+__C.TRAIN.SAVE_FREQ                              = 25
+__C.TRAIN.LEARNING_RATE                          = 1e-4 #1e-4
+__C.TRAIN.LR_MILESTONES                          = [50] # [15,50,80]
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
 __C.TRAIN.GAMMA                                  = .5
 __C.TRAIN.BETAS                                  = (.9, .999)
 __C.TRAIN.WEIGHT_DECAY                           = 0
@@ -116,4 +148,8 @@ __C.TRAIN.WEIGHT_DECAY                           = 0
 # Test
 #
 __C.TEST                                         = edict()
+<<<<<<< HEAD
 __C.TEST.METRIC_NAME                             = 'F-Score_cloud_0.01'
+=======
+__C.TEST.METRIC_NAME                             = 'ChamferDistance'
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71

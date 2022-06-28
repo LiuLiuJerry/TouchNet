@@ -47,7 +47,11 @@ def collate_fn(batch):
     return taxonomy_ids, model_ids, data
 
 
+<<<<<<< HEAD
 class Dataset2(torch.utils.data.dataset.Dataset): #重写pytorch的dataset类
+=======
+class Dataset(torch.utils.data.dataset.Dataset): #重写pytorch的dataset类
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
     def __init__(self, options, file_list, transforms=None):
         self.options = options
         self.file_list = file_list
@@ -109,7 +113,12 @@ class ShapeNetDataLoader(object):
     def __init__(self, cfg):
         self.cfg = cfg #参数文件
 
+<<<<<<< HEAD
         # Load the dataset indexing file
+=======
+        # Load the dataset indexing file、
+        
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
         self.dataset_categories = []
         with open(cfg.DATASETS.SHAPENET.CATEGORY_FILE_PATH) as f:
             self.dataset_categories = json.loads(f.read()) #从ShapeNet.json中读取物体目录（全部物体）

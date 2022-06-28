@@ -115,10 +115,10 @@ def train_net(cfg):
 
             import sys
             b_debug = True if sys.gettrace() else False
-            if b_debug:
+            '''if b_debug:
                 for  name , params in imnet.named_parameters():
                     #print('-->name:', name, '-->grad_requirs:', params.requires_grad, '-->grad_value:', params.grad)
-                    print('-->name:', name, '-->grad_requirs:', params.requires_grad, '-->value:', params.values)
+                    print('-->name:', name, '-->grad_requirs:', params.requires_grad, '-->value:', params.values)'''
 
 
             res, _loss = imnet(partial_clouds, samples, labels)

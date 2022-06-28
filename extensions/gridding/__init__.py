@@ -13,7 +13,10 @@ import gridding
 class GriddingFunction(torch.autograd.Function):
     @staticmethod
     def forward(ctx, scale, ptcloud):
+<<<<<<< HEAD
         #例：scale=64
+=======
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
         grid, grid_pt_weights, grid_pt_indexes = gridding.forward(-scale, scale - 1, -scale, scale - 1, -scale,
                                                                   scale - 1, ptcloud)
         # print(grid.size())             # torch.Size(batch_size, n_grid_vertices)
@@ -38,7 +41,11 @@ class Gridding(torch.nn.Module):
         self.scale = scale // 2
 
     def forward(self, ptcloud):
+<<<<<<< HEAD
         ptcloud = ptcloud * self.scale
+=======
+        ptcloud = ptcloud * self.scale  #这里保证了点云大小和网格大小相匹配
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
         _ptcloud = torch.split(ptcloud, 1, dim=0)
         grids = []
         for p in _ptcloud:
@@ -50,13 +57,20 @@ class Gridding(torch.nn.Module):
 
 
 class GriddingReverseFunction(torch.autograd.Function):
+<<<<<<< HEAD
     #根据网格特征生成点云
+=======
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
     @staticmethod
     def forward(ctx, scale, grid):
         ptcloud = gridding.rev_forward(scale, grid)
         ctx.save_for_backward(torch.Tensor([scale]), grid, ptcloud)
         return ptcloud
+<<<<<<< HEAD
     #根据点云回传的梯度(grad_pycloud)算网格的梯度
+=======
+
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
     @staticmethod
     def backward(ctx, grad_ptcloud):
         scale, grid, ptcloud = ctx.saved_tensors
@@ -74,6 +88,7 @@ class GriddingReverse(torch.nn.Module):
     def forward(self, grid):
         ptcloud = GriddingReverseFunction.apply(self.scale, grid)
         return ptcloud / self.scale * 2
+<<<<<<< HEAD
 
 #by Jerry
 class GridSamplingFunction(torch.autograd.Function):
@@ -98,3 +113,5 @@ class GriddingSample(torch.nn.Module):
     def forward(self, grid, ptcloud):
         # grid是每个网格顶点的特征
         pt_inout = GridSamplingFunction.apply(self.scale, grid, ptcloud)
+=======
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71

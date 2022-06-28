@@ -24,7 +24,11 @@ class Metrics(object):
         'eval_func': 'cls._get_f_score',
         'is_greater_better': True,
         'init_value': 0
+<<<<<<< HEAD
     },{
+=======
+    }, {
+>>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
         'name': 'ChamferDistance',
         'enabled': True,
         'eval_func': 'cls._get_chamfer_distance',

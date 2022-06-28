@@ -88,7 +88,7 @@ class Metrics(object):
         dist1 = pred.compute_point_cloud_distance(gt)
         dist2 = gt.compute_point_cloud_distance(pred)
 
-        print("length of dist1:", len(dist1) )
+        #print("length of dist1:", len(dist1) )
 
         recall = float(sum(d < th for d in dist2)) / float(len(dist2))
         precision = float(sum(d < th for d in dist1)) / float(len(dist1))
@@ -97,7 +97,7 @@ class Metrics(object):
 
     @classmethod
     def _get_open3d_ptcloud(cls, tensor):
-        tensor = tensor.squeeze().cpu().numpy()
+        tensor = tensor.squeeze(0).cpu().numpy()
         ptcloud = open3d.geometry.PointCloud()
         ptcloud.points = open3d.utility.Vector3dVector(tensor)
 
