@@ -65,11 +65,8 @@ def get_ptcloud_img(ptcloud):
         ax.plot([xx[n], xx[n]], [yy[n], yy[n]], [p_min, p_max], **kwargs1)
     ax.plot([xx[3], xx[3]], [yy[3], yy[3]], [p_min, p_max], **kwargs2)
     
-<<<<<<< HEAD
    
     
-=======
->>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
     ax.scatter(x, y, z, zdir='z', c=x, cmap='jet')
 
     fig.canvas.draw()
