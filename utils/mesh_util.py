@@ -43,7 +43,7 @@ def reconstruction(net, cuda,
         sdf = eval_grid(coords, eval_func, num_samples=num_samples)
 
     # Finally we do marching cubes
-    print(np.max(sdf), np.min(sdf))
+    print("evaluation of the gridding space: range from %s to %s"% (np.max(sdf), np.min(sdf)) )
     try:
         verts, faces, normals, values = measure.marching_cubes(sdf, 0.65) #measure.marching_cubes_lewiner(sdf, 0.5)
         # transform verts into world coordinate system

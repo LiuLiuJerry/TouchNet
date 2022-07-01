@@ -112,29 +112,32 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
             for s in tqdm(samples, leave=False): #遍历该类的全部文件
                 
                 gt_mesh_path = cfg.DATASETS.SHAPENETTOUCH.MESH_PATH % (subset, dc['taxonomy_id'], s)
-                #gt_mesh =  load_trimesh(gt_mesh_path)
-                
+
 
                 data_dc = {}
                 data_dc['taxonomy_id'] = dc['taxonomy_id']
                 data_dc['model_id'] = s
                 data_dc['partial_cloud'] = []
-                data_dc['samples'] = []
-                data_dc['labels'] = []
+                data_dc['samples_path_in'] = []
+                data_dc['samples_path_out'] = []
+                if self.cfg. DATASETS.SHAPENETTOUCH.LOAD_MODE == 0:
+                    gt_mesh =  load_trimesh(gt_mesh_path)
+                    data_dc['gt_mesh'] = gt_mesh
                 for i in range(n_renderings):
 
                     partial_path = cfg.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH%(subset, dc['taxonomy_id'], s, i)
                     partial_tmp = IO.get(partial_path).astype(np.float32)
                     data_dc['partial_cloud'].append(partial_tmp)
-                    #data_dc['gt_mesh'] = gt_mesh
+                   
                     
-                    sample_path_in = cfg.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_IN%(subset, dc['taxonomy_id'], s, i)
-                    sample_path_out = cfg.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_OUT%(subset, dc['taxonomy_id'], s, i)
-                    samples_tmp, n_in, n_out = load_gt(sample_path_in, sample_path_out)
-                    labels_tmp = np.concatenate([np.ones((1,n_in)), np.zeros((1,n_out))], axis=1)
+                    if self.cfg.DATASETS.SHAPENETTOUCH.LOAD_MODE == 1:
+                        sample_path_in = cfg.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_IN%(subset, dc['taxonomy_id'], s, i)
+                        sample_path_out = cfg.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_OUT%(subset, dc['taxonomy_id'], s, i)
 
-                    data_dc['samples'].append(samples_tmp)
-                    data_dc['labels'].append(labels_tmp)
+
+                        data_dc['samples_path_in'].append(sample_path_in)
+                        data_dc['samples_path_out'].append(sample_path_out) 
+                        
                     
                 data_list.append(data_dc)
             
@@ -223,19 +226,24 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
         for ri in self.options['required_items']:
             rand_ii = np.random.randint(0, 4, 3)
             if ri == 'sampled_gt_points':#获取采样数据和label
-                if data_dc.__contains__('samples') and data_dc.__contains__('labels'):
+                if  self.cfg. DATASETS.SHAPENETTOUCH.LOAD_MODE == 1:
                     s_idx = np.arange(self.num_samplemesh_inout)
                     np.random.shuffle(s_idx)
-                    #print("sampling shape ", data_dc['samples'].shape, data_dc['labels'].shape) 
-                    samples = data_dc['samples'][rand_ii[0]][s_idx,:]
-                    labels = data_dc['labels'][rand_ii[1]][:,s_idx]
+                    #print("sampling shape ", data_dc['samples_path_in'].shape, data_dc['samples_path_out'].shape) 
+
+                    samples_path_in = data_dc['samples_path_in'][rand_ii[0]]
+                    sample_path_out = data_dc['samples_path_out'][rand_ii[1]]
+                    samples_tmp, n_in, n_out = load_gt(samples_path_in, sample_path_out)
+                    labels_tmp = np.concatenate([np.ones((1,n_in)), np.zeros((1,n_out))], axis=1)
+                    samples = samples_tmp[s_idx, :]
+                    labels = labels_tmp[:,s_idx]
                     #print("sampling shape ", samples.shape, labels.shape)
                     #turn into torch tensor
                     samples = torch.Tensor(samples).float()
                     labels  = torch.Tensor(labels).float()
                     sample_data = {
-                        'samples': samples,
-                        'labels' : labels
+                        'samples_path_in': samples,
+                        'samples_path_out' : labels
                     }
                 else:
                     #print("sampling surface points: ", data_dc['model_id'])
@@ -391,8 +399,8 @@ class ImplicitDataset_onoff(torch.utils.data.dataset.Dataset):
         labels  = torch.Tensor(labels).float()
         
         return {
-            'samples': samples,
-            'labels': labels
+            'samples_path_in': samples,
+            'samples_path_out': labels
         }
         
     def _get_options(self):
@@ -413,8 +421,8 @@ class ImplicitDataset_onoff(torch.utils.data.dataset.Dataset):
                 sample_data = self.select_sampling_method(data_dc['gt_mesh'])
                 #from mesh_to_sdf import sample_sdf_near_surface
                 #sample_data, label = sample_sdf_near_surface(data_dc['gt_mesh'], number_of_points=5000)
-                #data['samples'] = sample_data
-                #data['labels'] = label
+                #data['samples_path_in'] = sample_data
+                #data['samples_path_out'] = label
                 data.update(sample_data)
             else:
                 data[ri] = data_dc[ri]
