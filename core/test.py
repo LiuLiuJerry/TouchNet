@@ -16,7 +16,7 @@ from models.gr_implicitnet import GRImplicitNet
 from utils.average_meter import AverageMeter
 from utils.ImplicitMetrics import Metrics
 
-from utils.ImplicitDataLoader import ImplicitDataset_inout, ImplicitDataset_onoff
+from utils.ImplicitDataLoader import ImplicitDataset_inout
 
 import open3d
 import numpy as np

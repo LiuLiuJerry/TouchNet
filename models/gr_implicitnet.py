@@ -151,7 +151,8 @@ class GRImplicitNet(torch.nn.Module):
             input: (N,C,D,H,W)
             grid : (N,D,H,W,3) 
             '''
-            p_f = torch.nn.functional.grid_sample(f, uvw) #[B,C,N,1,1]
+            #grid_sample coordinate: [-1,1]
+            p_f = torch.nn.functional.grid_sample(f, uvw, align_corners=True) #[B,C,N,1,1]
             point_features.append(p_f.view(p_f.shape[:3]))#[B,C,N]
         
         return point_features

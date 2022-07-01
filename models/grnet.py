@@ -127,21 +127,6 @@ class GRNet(torch.nn.Module):
         partial_cloud = data['partial_cloud']
         # print(partial_cloud.size())     # torch.Size([batch_size, 2048, 3])
         pt_features_64_l = self.gridding(partial_cloud).view(-1, 1, 64, 64, 64)
-<<<<<<< HEAD
-=======
-        if True: #debug
-            ptcloud_max, _ = torch.max(partial_cloud, dim=1) #(1, 3)
-            ptcloud_min, _ = torch.min(partial_cloud, dim=1)
-            print(ptcloud_max[0], ptcloud_min[0])
-            arg_fea = torch.nonzero(pt_features_64_l[0]) #(n, 4)
-            feat_index_max, _ = torch.max(arg_fea, dim=0) #(1, 4)
-            feat_index_min, _ = torch.min(arg_fea, dim=0)
-            print(feat_index_max, feat_index_min)
-            #print(grid_feature_max_x, grid_feature_min_x)
-            #print(grid_feature_max_y, grid_feature_min_y)
-            #print(grid_feature_max_z, grid_feature_min_z)
-            
->>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
         # print(pt_features_64_l.size())  # torch.Size([batch_size, 1, 64, 64, 64])
         pt_features_32_l = self.conv1(pt_features_64_l)
         # print(pt_features_32_l.size())  # torch.Size([batch_size, 32, 32, 32, 32])
@@ -161,11 +146,7 @@ class GRNet(torch.nn.Module):
         # print(pt_features_16_r.size())  # torch.Size([batch_size, 64, 16, 16, 16])
         pt_features_32_r = self.dconv9(pt_features_16_r) + pt_features_32_l
         # print(pt_features_32_r.size())  # torch.Size([batch_size, 32, 32, 32, 32])
-<<<<<<< HEAD
         pt_features_64_r = self.dconv10(pt_features_32_r) + pt_features_64_l  #每个顶点的权重变为1维
-=======
-        pt_features_64_r = self.dconv10(pt_features_32_r) + pt_features_64_l
->>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
         # print(pt_features_64_r.size())  # torch.Size([batch_size, 1, 64, 64, 64])
         sparse_cloud = self.gridding_rev(pt_features_64_r.squeeze(dim=1))
         # print(sparse_cloud.size())      # torch.Size([batch_size, 262144, 3])

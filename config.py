@@ -34,7 +34,7 @@ __C.DATASETS.KITTI.BOUNDING_BOX_FILE_PATH        = '/home/SENSETIME/xiehaozhe/Da
 
 #Jerry: ShapeNetTouch config  --mug
 __C.DATASETS.SHAPENETTOUCH                            = edict()
-__C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = './datasets/ShapeNetTouch.json'
+__C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = '/home/manager/data/ShapeCompletion/mug/ShapeNetTouch.json'
 __C.DATASETS.SHAPENETTOUCH.N_RENDERINGS               = 4 #一个物体对应4个rendering
 __C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到？
 # --参数1：subset（train/val）, 参数2：dc['taxonomy_id'], 物体类别的id  参数3： 数据id  参数4：i,同一个物体不同的exploration

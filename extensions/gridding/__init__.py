@@ -38,7 +38,7 @@ class Gridding(torch.nn.Module):
         self.scale = scale // 2
 
     def forward(self, ptcloud):
-        ptcloud = ptcloud * self.scale
+        ptcloud = ptcloud * self.scale #assuming origin shape range from [-1,1], transform the coordinate into [-scale, scale-1]
         _ptcloud = torch.split(ptcloud, 1, dim=0)
         grids = []
         for p in _ptcloud:

@@ -48,10 +48,7 @@ __global__ void gridding_reverse_kernel(int scale,
     }
 
     // assert j == compute_index(x_offset, y_offset, z_offset, scale)
-<<<<<<< HEAD
     // 每个网格顶点的权重只有一维
-=======
->>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
     float weights[8] = {
       grid[compute_index(x_offset - 1, y_offset - 1, z_offset - 1, scale)],
       grid[compute_index(x_offset - 1, y_offset - 1, z_offset, scale)],
@@ -60,11 +57,7 @@ __global__ void gridding_reverse_kernel(int scale,
       grid[compute_index(x_offset, y_offset - 1, z_offset - 1, scale)],
       grid[compute_index(x_offset, y_offset - 1, z_offset, scale)],
       grid[compute_index(x_offset, y_offset, z_offset - 1, scale)],
-<<<<<<< HEAD
       grid[j]}; //取权重
-=======
-      grid[j]};
->>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
 
     float weights_sum = 0;
     for (size_t i = 0; i < 8; ++i) {
@@ -129,10 +122,7 @@ torch::Tensor gridding_reverse_cuda_forward(int scale,
   return ptcloud;
 }
 
-<<<<<<< HEAD
 //求梯度，将点云的梯度分散到每个网格上
-=======
->>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
 __global__ void gridding_reverse_grad_kernel(
   int scale,
   int n_pts,
@@ -140,12 +130,9 @@ __global__ void gridding_reverse_grad_kernel(
   const float *__restrict__ grid,
   const float *__restrict__ grad_ptcloud,
   float *__restrict__ grad_grid) {
-<<<<<<< HEAD
   //grid: 网格上的权重
   //ptcloud: 点云三维坐标(通过网格生成)
   //grad_ptcloud: 每个点云获得的梯度
-=======
->>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
   int batch_index = blockIdx.x;
   int index       = threadIdx.x;
   int stride      = blockDim.x;
@@ -154,11 +141,7 @@ __global__ void gridding_reverse_grad_kernel(
   grid += batch_index * n_pts;
   grad_ptcloud += batch_index * n_pts * 3;
   grad_grid += batch_index * n_pts;
-<<<<<<< HEAD
   //取第j个顶点所在的网格坐标
-=======
-
->>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
   for (int j = index; j < n_pts; j += stride) {
     int sqr_scale = scale * scale;
     int x_offset  = j / sqr_scale;
@@ -167,11 +150,7 @@ __global__ void gridding_reverse_grad_kernel(
     if (x_offset == 0 || y_offset == 0 || z_offset == 0) {
       continue;
     }
-<<<<<<< HEAD
     //对应网格的8个顶点
-=======
-
->>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
     int gvtx_indexes[8] = {
       compute_index(x_offset - 1, y_offset - 1, z_offset - 1, scale),
       compute_index(x_offset - 1, y_offset - 1, z_offset, scale),
@@ -193,12 +172,8 @@ __global__ void gridding_reverse_grad_kernel(
 
     if (weights_sum < EPS) {
       continue;
-<<<<<<< HEAD
     } 
     //权重标准化
-=======
-    }
->>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
     for (size_t i = 0; i < 8; ++i) {
       weights[i] /= weights_sum;
     }
@@ -207,12 +182,8 @@ __global__ void gridding_reverse_grad_kernel(
     y_offset -= scale / 2;
     z_offset -= scale / 2;
 
-<<<<<<< HEAD
     // clang-format off  //每个顶点的梯度加上grad_ptcloud造成的影响
     // 每个点在每个维度给到的梯度从该点指向对应网格点，大小和点云在该维度的梯度成正比
-=======
-    // clang-format off
->>>>>>> d797c9a3b87a78c76f852e04ce9809d4580e0d71
     atomicAdd(&(grad_grid[gvtx_indexes[0]]),
                 grad_ptcloud[j * 3 + 0] * ((x_offset - 1) - ptcloud[j * 3 + 0]) / weights_sum +
                 grad_ptcloud[j * 3 + 1] * ((y_offset - 1) - ptcloud[j * 3 + 1]) / weights_sum +

@@ -22,7 +22,7 @@ from utils.average_meter import AverageMeter
 from utils.metrics import Metrics
 
 from models.gr_implicitnet import GRImplicitNet
-from utils.ImplicitDataLoader import ImplicitDataset_inout, ImplicitDataset_onoff
+from utils.ImplicitDataLoader import ImplicitDataset_inout
 
 def train_net(cfg):
     # Enable the inbuilt cudnn auto-tuner to find the best algorithm to use
