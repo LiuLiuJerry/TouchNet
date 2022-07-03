@@ -24,8 +24,8 @@ def inference_net(cfg):
     # Set up data loader
     if cfg.NETWORK.IMPLICIT_MODE == 1:
         test_dataset = ImplicitDataset_inout(cfg, phase='val')
-    elif cfg.NETWORK.IMPLICIT_MODE == 2:
-        test_dataset = ImplicitDataset_onoff(cfg, phase='val')
+    #elif cfg.NETWORK.IMPLICIT_MODE == 2:
+    #    test_dataset = ImplicitDataset_onoff(cfg, phase='val')
 
     test_data_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                                        batch_size=1,

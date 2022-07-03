@@ -33,6 +33,7 @@ __C.DATASETS.KITTI.PARTIAL_POINTS_PATH           = '/home/SENSETIME/xiehaozhe/Da
 __C.DATASETS.KITTI.BOUNDING_BOX_FILE_PATH        = '/home/SENSETIME/xiehaozhe/Datasets/KITTI/bboxes/%s.txt'
 
 #Jerry: ShapeNetTouch config  --mug
+'''
 __C.DATASETS.SHAPENETTOUCH                            = edict()
 __C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = '/home/manager/data/ShapeCompletion/mug/ShapeNetTouch.json'
 __C.DATASETS.SHAPENETTOUCH.N_RENDERINGS               = 4 #一个物体对应4个rendering
@@ -42,9 +43,11 @@ __C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/manager/data/Shap
 __C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/manager/data/ShapeCompletion/mug/%s/complete/%s/%s/01.pcd'
 __C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = '/home/manager/data/ShapeCompletion/mug/%s/complete/%s/%s/o1_manifold_plus.obj' 
 __C.DATASETS.SHAPENETTOUCH.LOAD_MODE                  = 0 # 0:sample online   1:sample offline and load online
+'''
+
 # airplane
 # --参数1：subset（train/val）, 参数2：dc['taxonomy_id'], 物体类别的id  参数3： 数据id  参数4：i,同一个物体不同的exploration
-'''
+
 __C.DATASETS.SHAPENETTOUCH                            = edict()
 __C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = '/home/manager/data/ShapeCompletion/Airplane/ShapeNetTouch.json'
 __C.DATASETS.SHAPENETTOUCH.N_RENDERINGS               = 4 #一个物体对应4个rendering
@@ -54,8 +57,8 @@ __C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/manager/data/Shap
 __C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = '/home/manager/data/ShapeCompletion/Airplane/%s/complete/%s/%s/01.obj'
 __C.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_IN             = '/home/manager/data/ShapeCompletion/Airplane/%s/complete/%s/%s/sampled_point_in_%d.obj'
 __C.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_OUT            = '/home/manager/data/ShapeCompletion/Airplane/%s/complete/%s/%s/sampled_point_out_%d.obj'
-'''
-
+__C.DATASETS.SHAPENETTOUCH.LOAD_MODE                  = 1 # 0:sample online   1:sample offline and load online
+__C.DATASETS.SHAPENETTOUCH.N_SAMPLES                  = 20
 #
 # Dataset
 #
@@ -108,7 +111,7 @@ __C.NETWORK.IMPLICIT_MODE                        = 1 # 1:in-out 2:on-off
 #
 __C.TRAIN                                        = edict()
 __C.TRAIN.BATCH_SIZE                             = 4 #32
-__C.TRAIN.N_EPOCHS                               = 500
+__C.TRAIN.N_EPOCHS                               = 200
 __C.TRAIN.SAVE_FREQ                              = 25
 __C.TRAIN.LEARNING_RATE                          = 1e-4 #1e-4
 __C.TRAIN.LR_MILESTONES                          = [] # [15,50,80]

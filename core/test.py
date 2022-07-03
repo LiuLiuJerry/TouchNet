@@ -31,8 +31,8 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
         # Set up data loader
         if cfg.NETWORK.IMPLICIT_MODE == 1:
             test_dataset = ImplicitDataset_inout(cfg, phase='test')
-        elif cfg.NETWORK.IMPLICIT_MODE == 2:
-            test_dataset = ImplicitDataset_onoff(cfg, phase='test')
+        #elif cfg.NETWORK.IMPLICIT_MODE == 2:
+        #    test_dataset = ImplicitDataset_onoff(cfg, phase='test')
         test_data_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                                        batch_size=1,
                                                        num_workers=cfg.CONST.NUM_WORKERS,
@@ -132,7 +132,7 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
                 utils.io.IO.put(path_save + "predicted_%.2d.ply"%(model_idx%4), ptcloud_cpu)
                 utils.io.IO.put(path_save + "gt.ply", gtcloud_cpu)
                 utils.io.IO.put(path_save + "partial_%.2d.ply"%(model_idx%4), data['partial_cloud'].cpu().numpy()[0])
-                print("test point cloud saved: %s"%(path_save + "%.2d.ply"%(model_idx%4)))
+                print("test point cloud saved: %s"%(path_save + "predicted_%.2d.ply"%(model_idx%4)))
 
             #output reconstruction mesh
             if cfg.b_reconstruction:

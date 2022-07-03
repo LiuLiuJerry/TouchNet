@@ -156,10 +156,51 @@ class GRImplicitNet(torch.nn.Module):
             point_features.append(p_f.view(p_f.shape[:3]))#[B,C,N]
         
         return point_features
+
+    def project_add(self, points):
+        '''
+        :parame points: [B,N,3]
+        '''
+        #print(torch.min(points, axis=1), torch.max(points, axis=1))
+        scale = 64
+        scale_2 = scale * scale
+        point_features = []
+        points = points * scale//2 + scale//2
+        #print(torch.min(points, axis=1), torch.max(points, axis=1))
+        x = torch.floor(points[:,:,0]).type(torch.long)
+        y = torch.floor(points[:,:,1]).type(torch.long)
+        z = torch.floor(points[:,:,2]).type(torch.long)
+        idx_0 = x * scale_2 + y * scale + z
+        idx_1 = (x+1) * scale_2 + y * scale + z
+        idx_2 = x * scale_2 + (y+1) * scale + z
+        idx_3= (x+1) * scale_2 + (y+1) * scale + z
+        idx_4 = x * scale_2 + y * scale + (z+1)
+        idx_5 = (x+1) * scale_2 + y * scale + (z+1)
+        idx_6 = x * scale_2 + (y+1) * scale + (z+1)
+        idx_7 = (x+1) * scale_2 + (y+1) * scale + (z+1)
+
+        #print(torch.min(idx_7, axis=0), torch.max(idx_7, axis=0))
+
+        for f in self.feat_list:
+            '''
+            input: (N,C,D,H,W)
+            grid : (N,D,H,W,3) 
+            '''
+            f = torch.permute(f, (0,2,3,4,1))
+            f = torch.flatten(f, start_dim=1, end_dim=3)
+            bt = f.shape[0]
+            p_f = torch.zeros((bt,points.shape[1],f.shape[-1])).to(device='cuda')
+            for i in range(bt):
+                tmp1 = f[i,idx_0[i],:] + f[i,idx_1[i],:] + f[i,idx_2[i],:] + f[i,idx_3[i],:]
+                tmp2 = f[i,idx_4[i],:] + f[i,idx_5[i],:] + f[i,idx_6[i],:] + f[i,idx_7[i],:] #[B,N,C]
+                p_f[i,:] = tmp1 + tmp2
+            point_features.append(torch.transpose(p_f, 1, 2))#[B,C,N]
+        
+        return point_features
       
     def query(self, points):
         #使用points对体素的特征进行查询
-        point_features = self.project(points)  #投影到对应网路中
+        point_features = self.project_add(points)  #投影到对应网路中
         point_features = point_features[-1]
         self.preds = self.surface_classifier(point_features)
         return self.preds

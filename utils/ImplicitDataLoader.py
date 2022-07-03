@@ -44,6 +44,8 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
         self.is_train = phase == 'train'
         
         self.num_samplemesh_inout = cfg.NETWORK.N_SAMPLING_MESHPOINTS 
+        self.n_renders = cfg.DATASETS.SHAPENETTOUCH.N_RENDERINGS 
+        self.n_samples = cfg.DATASETS.SHAPENETTOUCH.N_SAMPLES 
         self.options = self._get_options()
         
         # Load the dataset indexing file
@@ -121,20 +123,20 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
                 if self.cfg. DATASETS.SHAPENETTOUCH.LOAD_MODE == 0:
                     gt_mesh =  load_trimesh(gt_mesh_path)
                     data_dc['gt_mesh'] = gt_mesh
+                else:
+                    for i in range(self.cfg.DATASETS.SHAPENETTOUCH.N_SAMPLES ):
+                        sample_path_in = cfg.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_IN%(subset, dc['taxonomy_id'], s, i)
+                        sample_path_out = cfg.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_OUT%(subset, dc['taxonomy_id'], s, i)
+
+                        data_dc['samples_path_in'].append(sample_path_in)
+                        data_dc['samples_path_out'].append(sample_path_out) 
+
                 for i in range(n_renderings):
 
                     partial_path = cfg.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH%(subset, dc['taxonomy_id'], s, i)
                     partial_tmp = IO.get(partial_path).astype(np.float32)
                     data_dc['partial_cloud'].append(partial_tmp)
-                   
-                    
-                    if self.cfg.DATASETS.SHAPENETTOUCH.LOAD_MODE == 1:
-                        sample_path_in = cfg.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_IN%(subset, dc['taxonomy_id'], s, i)
-                        sample_path_out = cfg.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_OUT%(subset, dc['taxonomy_id'], s, i)
 
-
-                        data_dc['samples_path_in'].append(sample_path_in)
-                        data_dc['samples_path_out'].append(sample_path_out) 
                         
                     
                 data_list.append(data_dc)
@@ -222,17 +224,19 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
         data_dc = self.data_list[index]
         data = {}
         for ri in self.options['required_items']:
-            rand_ii = np.random.randint(0, 4, 3)
+            rand_r = np.random.randint(0, self.n_renders, 1)
+            rand_s = np.random.randint(0, self.n_samples, 2)
             if ri == 'sampled_gt_points':#获取采样数据和label
                 if  self.cfg. DATASETS.SHAPENETTOUCH.LOAD_MODE == 1:
-                    s_idx = np.arange(self.num_samplemesh_inout)
-                    np.random.shuffle(s_idx)
-                    #print("sampling shape ", data_dc['samples_path_in'].shape, data_dc['samples_path_out'].shape) 
 
-                    samples_path_in = data_dc['samples_path_in'][rand_ii[0]]
-                    sample_path_out = data_dc['samples_path_out'][rand_ii[1]]
+                    #print("sampling shape ", data_dc['samples_path_in'].shape, data_dc['samples_path_out'].shape) 
+                    samples_path_in = data_dc['samples_path_in'][rand_s[0]]
+                    sample_path_out = data_dc['samples_path_out'][rand_s[1]]
                     samples_tmp, n_in, n_out = load_gt(samples_path_in, sample_path_out)
                     labels_tmp = np.concatenate([np.ones((1,n_in)), np.zeros((1,n_out))], axis=1)
+
+                    s_idx = np.arange(n_in+n_out)
+                    np.random.shuffle(s_idx)
                     samples = samples_tmp[s_idx, :]
                     labels = labels_tmp[:,s_idx]
                     #print("sampling shape ", samples.shape, labels.shape)
@@ -240,8 +244,8 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
                     samples = torch.Tensor(samples).float()
                     labels  = torch.Tensor(labels).float()
                     sample_data = {
-                        'samples_path_in': samples,
-                        'samples_path_out' : labels
+                        'samples': samples,
+                        'labels' : labels
                     }
                 else:
                     #print("sampling surface points: ", data_dc['model_id'])
@@ -249,7 +253,7 @@ class ImplicitDataset_inout(torch.utils.data.dataset.Dataset):
 
                 data.update(sample_data)
             elif ri == 'partial_cloud':
-                data['partial_cloud'] = data_dc['partial_cloud'][rand_ii[2]]
+                data['partial_cloud'] = data_dc['partial_cloud'][rand_r[0]]
             else:
                 data[ri] = data_dc[ri]
                 
