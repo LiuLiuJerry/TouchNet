@@ -200,7 +200,7 @@ class GRImplicitNet(torch.nn.Module):
       
     def query(self, points):
         #使用points对体素的特征进行查询
-        point_features = self.project_add(points)  #投影到对应网路中
+        point_features = self.project(points)  #投影到对应网路中
         point_features = point_features[-1]
         self.preds = self.surface_classifier(point_features)
         return self.preds

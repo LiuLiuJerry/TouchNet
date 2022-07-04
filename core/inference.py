@@ -82,6 +82,6 @@ def inference_net(cfg):
                 os.makedirs(output_folder)
                 
                 
-            save_path = os.path.join(output_folder, 'predicted_%d.obj'%(model_idx))
+            save_path = os.path.join(output_folder, 'reconstructed_%d.obj'%(model_idx))
             
             gen_mesh(cfg, imnet, cuda, data, save_path, use_octree=True)

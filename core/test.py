@@ -17,6 +17,7 @@ from utils.average_meter import AverageMeter
 from utils.ImplicitMetrics import Metrics
 
 from utils.ImplicitDataLoader import ImplicitDataset_inout
+from mesh_reconstruction import gen_mesh
 
 import open3d
 import numpy as np
@@ -132,7 +133,7 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
                 utils.io.IO.put(path_save + "predicted_%.2d.ply"%(model_idx%4), ptcloud_cpu)
                 utils.io.IO.put(path_save + "gt.ply", gtcloud_cpu)
                 utils.io.IO.put(path_save + "partial_%.2d.ply"%(model_idx%4), data['partial_cloud'].cpu().numpy()[0])
-                print("test point cloud saved: %s"%(path_save + "predicted_%.2d.ply"%(model_idx%4)))
+                print("test point cloud saved: %s"%(path_save + "predicted_in_%.2d.ply"%(model_idx%4)))
 
             #output reconstruction mesh
             if cfg.b_reconstruction:
@@ -141,7 +142,7 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
                     os.makedirs(output_folder)
                     
                     
-                save_path = os.path.join(output_folder, 'predicted_%d.obj'%(model_idx))
+                save_path = os.path.join(output_folder, 'reconstructed_%d.obj'%(model_idx))
                 
                 gen_mesh(cfg, imnet, cuda, data, save_path, use_octree=True)
 

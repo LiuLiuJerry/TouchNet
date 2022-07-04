@@ -32,9 +32,9 @@ def train_net(cfg):
     if cfg.NETWORK.IMPLICIT_MODE == 1:
         train_dataset = ImplicitDataset_inout(cfg, phase='train')
         test_dataset = ImplicitDataset_inout(cfg, phase='test')
-    elif cfg.NETWORK.IMPLICIT_MODE == 2:
-        train_dataset = ImplicitDataset_onoff(cfg, phase='train')
-        test_dataset = ImplicitDataset_onoff(cfg, phase='test')
+    #elif cfg.NETWORK.IMPLICIT_MODE == 2:
+    #    train_dataset = ImplicitDataset_onoff(cfg, phase='train')
+    #    test_dataset = ImplicitDataset_onoff(cfg, phase='test')
         
     #读取点云
     train_data_loader = torch.utils.data.DataLoader(dataset=train_dataset,
@@ -88,7 +88,7 @@ def train_net(cfg):
     if 'WEIGHTS' in cfg.CONST:
         logging.info('Recovering from %s ...' % (cfg.CONST.WEIGHTS))
         checkpoint = torch.load(cfg.CONST.WEIGHTS)
-        best_metrics = Metrics(cfg.TEST.METRIC_NAME, checkpoint['best_metrics'])
+        #best_metrics = Metrics(cfg.TEST.METRIC_NAME, checkpoint['best_metrics'])
         imnet.load_state_dict(checkpoint['imnet'])
         logging.info('Recover complete. Current epoch = #%d; best metrics = %s.' % (init_epoch, best_metrics))
 
