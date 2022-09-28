@@ -35,11 +35,11 @@ warnings.filterwarnings("ignore")
 def get_args_from_command_line():
     parser = argparse.ArgumentParser(description='The argument parser of R2Net runner')
     parser.add_argument('--gpu', dest='gpu_id', help='GPU device to use', default=cfg.CONST.DEVICE, type=str)
-    parser.add_argument('--test', dest='test', help='Test neural networks', action='store_true', default=False)
+    parser.add_argument('--test', dest='test', help='Test neural networks', action='store_true', default=True)
     parser.add_argument('--inference', dest='inference', help='Inference for benchmark', action='store_true', default=False)
-    parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default=None) 
-    #parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default=
-    #                    '/home/manager/codes/TouchCompletion/shape-repair/output/ImplicitNet-mug-ckpt-best.pth') 
+    #parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default=None) 
+    parser.add_argument('--weights', dest='weights', help='Initialize network from the weights file', default=
+                        '/home/manager/codes/TouchCompletion/shape-repair/output/ImplicitNet-Car-ckpt-best.pth') 
     parser.add_argument('--save', dest="save", help='save results during test', default=True) 
     parser.add_argument('--mlp_dim', dest="mlp_dim", default=[16, 64, 128, 32, 1], type=int)
     args = parser.parse_args()
