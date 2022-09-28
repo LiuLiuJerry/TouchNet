@@ -16,22 +16,6 @@ cfg                                              = __C
 # Dataset Config
 #
 __C.DATASETS                                     = edict()
-__C.DATASETS.COMPLETION3D                        = edict()
-__C.DATASETS.COMPLETION3D.CATEGORY_FILE_PATH     = './datasets/Completion3D.json'
-__C.DATASETS.COMPLETION3D.PARTIAL_POINTS_PATH    = '/home/SENSETIME/xiehaozhe/Datasets/Completion3D/%s/partial/%s/%s.h5'
-__C.DATASETS.COMPLETION3D.COMPLETE_POINTS_PATH   = '/home/SENSETIME/xiehaozhe/Datasets/Completion3D/%s/gt/%s/%s.h5'
-__C.DATASETS.SHAPENET                            = edict()
-__C.DATASETS.SHAPENET.CATEGORY_FILE_PATH         = './datasets/ShapeNet.json'
-__C.DATASETS.SHAPENET.N_RENDERINGS               = 8 #一个物体对应8个rendering？
-__C.DATASETS.SHAPENET.N_POINTS                   = 16384
-# 参数1：subset（train/val）, 参数2：dc['taxonomy_id'],物体类别的id  参数3：s,数据id  参数：i，可能是同一个物体不同的partial？)
-__C.DATASETS.SHAPENET.PARTIAL_POINTS_PATH        = '/home/SENSETIME/xiehaozhe/Datasets/ShapeNet/ShapeNetCompletion/%s/partial/%s/%s/%.2d.pcd'
-__C.DATASETS.SHAPENET.COMPLETE_POINTS_PATH       = '/home/SENSETIME/xiehaozhe/Datasets/ShapeNet/ShapeNetCompletion/%s/complete/%s/%s.pcd'
-__C.DATASETS.KITTI                               = edict()
-__C.DATASETS.KITTI.CATEGORY_FILE_PATH            = './datasets/KITTI.json'
-__C.DATASETS.KITTI.PARTIAL_POINTS_PATH           = '/home/SENSETIME/xiehaozhe/Datasets/KITTI/cars/%s.pcd'
-__C.DATASETS.KITTI.BOUNDING_BOX_FILE_PATH        = '/home/SENSETIME/xiehaozhe/Datasets/KITTI/bboxes/%s.txt'
-
 #Jerry: ShapeNetTouch config  --mug
 __C.DATASETS.SHAPENETTOUCH                            = edict()
 __C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = '/home/manager/data/ShapeCompletion/mug/ShapeNetTouch.json'
@@ -79,9 +63,6 @@ __C.DATASETS.SHAPENETTOUCH.N_SAMPLES                  = 20
 # Dataset
 #
 __C.DATASET                                      = edict()
-# Dataset Options: Completion3D, ShapeNet, ShapeNetCars, KITTI
-#__C.DATASET.TRAIN_DATASET                        = 'ShapeNet'
-#__C.DATASET.TEST_DATASET                         = 'ShapeNet'
 __C.DATASET.TRAIN_DATASET                        = 'ShapeNetTouch'
 __C.DATASET.TEST_DATASET                         = 'ShapeNetTouch'
 
