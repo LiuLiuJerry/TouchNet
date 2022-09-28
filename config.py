@@ -33,7 +33,6 @@ __C.DATASETS.KITTI.PARTIAL_POINTS_PATH           = '/home/SENSETIME/xiehaozhe/Da
 __C.DATASETS.KITTI.BOUNDING_BOX_FILE_PATH        = '/home/SENSETIME/xiehaozhe/Datasets/KITTI/bboxes/%s.txt'
 
 #Jerry: ShapeNetTouch config  --mug
-
 __C.DATASETS.SHAPENETTOUCH                            = edict()
 __C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = '/home/manager/data/ShapeCompletion/mug/ShapeNetTouch.json'
 __C.DATASETS.SHAPENETTOUCH.N_RENDERINGS               = 4 #一个物体对应4个rendering
@@ -60,6 +59,21 @@ __C.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_OUT            = '/home/manager/data/Shap
 __C.DATASETS.SHAPENETTOUCH.LOAD_MODE                  = 1 # 0:sample online   1:sample offline and load online
 __C.DATASETS.SHAPENETTOUCH.N_SAMPLES                  = 20
 '''
+
+# car
+# --参数1：subset（train/val）, 参数2：dc['taxonomy_id'], 物体类别的id  参数3： 数据id  参数4：i,同一个物体不同的exploration
+__C.DATASETS.SHAPENETTOUCH                            = edict()
+__C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = '/home/manager/data/ShapeCompletion/Car/ShapeNetTouch-Car.json'
+__C.DATASETS.SHAPENETTOUCH.N_RENDERINGS               = 4 #一个物体对应4个rendering
+__C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到？
+__C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到？
+__C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = '/home/manager/data/ShapeCompletion/Car/%s/partial/%s/%s/path2048_%.2d.pcd'
+__C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = '/home/manager/data/ShapeCompletion/Car/%s/complete/%s/%s/01.pcd'
+__C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = '/home/manager/data/ShapeCompletion/Car/%s/complete/%s/%s/01.obj'
+__C.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_IN             = '/home/manager/data/ShapeCompletion/Car/%s/complete/%s/%s/sampled_point_in_%d.obj'
+__C.DATASETS.SHAPENETTOUCH.SAMPLE_PATH_OUT            = '/home/manager/data/ShapeCompletion/Car/%s/complete/%s/%s/sampled_point_out_%d.obj'
+__C.DATASETS.SHAPENETTOUCH.LOAD_MODE                  = 1 # 0:sample online   1:sample offline and load online
+__C.DATASETS.SHAPENETTOUCH.N_SAMPLES                  = 20
 
 #
 # Dataset
