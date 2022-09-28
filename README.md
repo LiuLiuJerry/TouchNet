@@ -2,7 +2,7 @@
 
 This repository contains the source code for the paper [End-to-end Surface Reconstruction For Touching Trajectories.].
 
-![Overview](https://infinitescript.com/wordpress/wp-content/uploads/2020/07/TouchNet-Overview.png)
+![Overview](./images/framework-network.pdf)
 
 ## Cite this work
 
