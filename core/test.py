@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # @Author: Haozhe Xie
 # @Date:   2019-07-31 16:57:15
-# @Last Modified by:   Haozhe Xie
-# @Last Modified time: 2020-02-22 19:29:37
-# @Email:  cshzxie@gmail.com
+# @Last Modified by:   Jiarui Liu
+# @Last Modified time: 2022-09-28 22:37
+# @Email:  18811758898@163.com
 
 import logging
 import torch
@@ -12,7 +12,7 @@ import utils.helpers
 
 from extensions.chamfer_dist import ChamferDistance
 from extensions.gridding_loss import GriddingLoss
-from models.gr_implicitnet import GRImplicitNet
+from models.touch_implicitnet import TouchImplicitNet
 from utils.average_meter import AverageMeter
 from utils.ImplicitMetrics import Metrics
 
@@ -42,7 +42,7 @@ def test_net(cfg, epoch_idx=-1, test_data_loader=None, test_writer=None, imnet=N
 
     # Setup networks and initialize networks
     if imnet is None:
-        imnet = GRImplicitNet(cfg)
+        imnet = TouchImplicitNet(cfg)
 
         if torch.cuda.is_available():
             imnet = torch.nn.DataParallel(imnet).cuda()

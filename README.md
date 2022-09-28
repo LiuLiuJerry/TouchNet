@@ -2,7 +2,7 @@
 
 This repository contains the source code for the paper [End-to-end Surface Reconstruction For Touching Trajectories.].
 
-![Overview](./images/framework-network.pdf)
+![Overview](./images/overview.JPG)
 
 ## Cite this work
 

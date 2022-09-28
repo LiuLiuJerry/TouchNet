@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # @Author: Haozhe Xie
 # @Date:   2019-12-23 11:46:33
-# @Last Modified by:   Haozhe Xie
-# @Last Modified time: 2020-02-22 19:12:44
-# @Email:  cshzxie@gmail.com
+# @Last Modified by:   Jiarui Liu
+# @Last Modified time: 2022-09-28 22:37
+# @Email:  18811758898@163.com
 
 import logging
 import os
@@ -13,7 +13,7 @@ from utils.ImplicitDataLoader import ImplicitDataset_inout
 import utils.helpers
 import utils.io
 
-from models.gr_implicitnet import GRImplicitNet
+from models.touch_implicitnet import TouchImplicitNet
 from mesh_reconstruction import gen_mesh
 
 
@@ -34,7 +34,7 @@ def inference_net(cfg):
                                                        shuffle=False)
 
     # Setup networks and initialize networks
-    imnet = GRImplicitNet(cfg)
+    imnet = TouchImplicitNet(cfg)
     # set cuda
     cuda = torch.device('cuda:%d' % 0) if torch.cuda.is_available() else torch.device('cpu')
 

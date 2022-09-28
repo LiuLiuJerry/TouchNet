@@ -1,10 +1,9 @@
 #! /usr/bin/python3
-# -*- coding: utf-8 -*-
-# @Author: Haozhe Xie
-# @Date:   2019-07:31 16:57:15
-# @Last Modified by:   Haozhe Xie
-# @Last Modified time: 2020-02-22 19:28:24
-# @Email:  cshzxie@gmail.com
+# @Author: Jiarui Liu
+# @Date:   2022-09-28 22:37
+# @Last Modified by:   Jiarui Liu
+# @Last Modified time: 2022-09-28 22:37
+# @Email:  18811758898@163.com
 
 import argparse
 import cv2

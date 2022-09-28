@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # @Author: Haozhe Xie
 # @Date:   2019-07-31 16:57:15
-# @Last Modified by:   Haozhe Xie
-# @Last Modified time: 2020-07-04 11:01:37
-# @Email:  cshzxie@gmail.com
+# @Last Modified by:   Jiarui Liu
+# @Last Modified time: 2022-09-28 22:37
+# @Email:  18811758898@163.com
 
 import logging
 import os
@@ -21,7 +21,7 @@ from extensions.gridding_loss import GriddingLoss
 from utils.average_meter import AverageMeter
 from utils.metrics import Metrics
 
-from models.gr_implicitnet import GRImplicitNet
+from models.touch_implicitnet import TouchImplicitNet
 from utils.ImplicitDataLoader import ImplicitDataset_inout
 
 def train_net(cfg):
@@ -61,9 +61,9 @@ def train_net(cfg):
     test_writer = SummaryWriter(os.path.join(cfg.DIR.LOGS, 'test'))
 
     # Create the networks
-    imnet = GRImplicitNet(cfg)
+    imnet = TouchImplicitNet(cfg)
     imnet.apply(utils.helpers.init_weights)
-    logging.debug('Parameters in GRImplicitNet: %d.' % utils.helpers.count_parameters(imnet))
+    logging.debug('Parameters in TouchImplicitNet: %d.' % utils.helpers.count_parameters(imnet))
 
 
     # Move the network to GPU if possible

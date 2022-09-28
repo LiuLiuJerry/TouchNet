@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 # @Author: Haozhe Xie
 # @Date:   2019-09-06 11:35:30
-# @Last Modified by:   Haozhe Xie
-# @Last Modified time: 2020-02-22 19:20:36
-# @Email:  cshzxie@gmail.com
+# @Last Modified by:   Jiarui Liu
+# @Last Modified time: 2022-09-28 22:37
+# @Email:  18811758898@163.com
 
 import torch
 import torch.nn as nn
@@ -41,7 +41,7 @@ class RandomPointSampling(torch.nn.Module):
         return torch.cat(ptclouds, dim=0).contiguous()  #重新拼接到同一个张量中
 
 
-class GRImplicitNet(torch.nn.Module):
+class TouchImplicitNet(torch.nn.Module):
     def __init__(self, cfg):
         super().__init__() #调用父类
         self.opt = cfg

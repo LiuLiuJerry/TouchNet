@@ -1,3 +1,9 @@
+# @Author: Jiarui Liu
+# @Date:   2022-09-28 22:37
+# @Last Modified by:   Jiarui Liu
+# @Last Modified time: 2022-09-28 22:37
+# @Email:  18811758898@163.com
+
 import torch
 from p_utils.common import get_dists
 
