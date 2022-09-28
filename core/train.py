@@ -43,7 +43,7 @@ def train_net(cfg):
                                                     pin_memory=True,
                                                     shuffle=True,
                                                     drop_last=True)
-    val_data_loader = torch.utils.data.DataLoader(dataset=test_dataset,
+    test_data_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                                   batch_size=1,
                                                   num_workers=cfg.CONST.NUM_WORKERS,
                                                   pin_memory=True,
@@ -58,7 +58,7 @@ def train_net(cfg):
 
     # Create tensorboard writers
     train_writer = SummaryWriter(os.path.join(cfg.DIR.LOGS, 'train'))
-    val_writer = SummaryWriter(os.path.join(cfg.DIR.LOGS, 'test'))
+    test_writer = SummaryWriter(os.path.join(cfg.DIR.LOGS, 'test'))
 
     # Create the networks
     imnet = GRImplicitNet(cfg)
@@ -178,7 +178,7 @@ def train_net(cfg):
             (epoch_idx, cfg.TRAIN.N_EPOCHS, epoch_end_time - epoch_start_time, ['%.4f' % l for l in losses.avg()]))
         
         # Validate the current model 每个epoch验证一次
-        metrics = test_net(cfg, epoch_idx, val_data_loader, val_writer, imnet)
+        metrics = test_net(cfg, epoch_idx, test_data_loader, test_writer, imnet)
 
         # Save ckeckpoints
         if epoch_idx % cfg.TRAIN.SAVE_FREQ == 0 or metrics.better_than(best_metrics):
@@ -196,4 +196,4 @@ def train_net(cfg):
 
 
     train_writer.close()
-    val_writer.close()
+    test_writer.close()
