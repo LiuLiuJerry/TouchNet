@@ -1,6 +1,6 @@
 # TouchNet
 
-This repository contains the source code for the paper ![End-to-end Surface Reconstruction For Touching Trajectories].
+This repository contains the source code for the paper [End-to-end Surface Reconstruction For Touching Trajectories]
 
 ![Overview](./images/overview.JPG)
 
@@ -40,7 +40,7 @@ The pretrained models are available as follows:
 ```
 git clone https://github.com/LiuLiuJerry/ShapeNetProcessing.git 
 ```
-Note that this code is partly based on TouchNet( https://github.com/hzxie/TouchNet )
+Note that this code is partly based on GRNet( https://github.com/hzxie/GRNet )
 
 #### Install Python Denpendencies
 
