@@ -1,6 +1,6 @@
 # TouchNet
 
-This repository contains the source code for the paper [End-to-end Surface Reconstruction For Touching Trajectories.].
+This repository contains the source code for the paper ![End-to-end Surface Reconstruction For Touching Trajectories].
 
 ![Overview](./images/overview.JPG)
 
@@ -22,7 +22,7 @@ This repository contains the source code for the paper [End-to-end Surface Recon
 
 Our datasets are available below:
 
-- [Mug]()
+- [Mug](https://drive.google.com/file/d/1ri_TmbM3LrkU6TdJB5Rd5gmZSbh-0nNQ/view?usp=sharing)
 - [Airplane]()
 - [Car]()
 
@@ -55,15 +55,9 @@ You need to update the file path of the datasets:
 
 ```
 __C.DATASETS.SHAPENETTOUCH.CATEGORY_FILE_PATH         = 'path/to/datasets/datasetname/ShapeNetTouch.json'
-__C.DATASETS.SHAPENETTOUCH.N_RENDERINGS               = 4 #一个物体对应4个rendering
-__C.DATASETS.SHAPENETTOUCH.N_POINTS                   = 2048 #好像也没用到？
-# --参数1：subset（train/val）, 参数2：dc['taxonomy_id'], 物体类别的id  参数3： 数据id  参数4：i,同一个物体不同的exploration
 __C.DATASETS.SHAPENETTOUCH.PARTIAL_POINTS_PATH        = 'path/to/datasets/datasetname/%s/partial/%s/%s/path2048_%.2d.pcd'
 __C.DATASETS.SHAPENETTOUCH.COMPLETE_POINTS_PATH       = 'path/to/datasets/datasetname/%s/complete/%s/%s/01.pcd'
 __C.DATASETS.SHAPENETTOUCH.MESH_PATH                  = 'path/to/datasets/datasetname/%s/complete/%s/%s/simplified.obj' 
-__C.DATASETS.SHAPENETTOUCH.LOAD_MODE                  = 0 # 0:sample online   1:sample offline and load online
-__C.DATASETS.SHAPENETTOUCH.N_SAMPLES                  = 20
-
 ```
 
 ## Get Started

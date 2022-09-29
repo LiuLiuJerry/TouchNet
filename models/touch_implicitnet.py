@@ -127,7 +127,7 @@ class TouchImplicitNet(torch.nn.Module):
         # print(pt_features_4_l.size())   # torch.Size([batch_size, 256, 4, 4, 4])
         features = self.fc5(pt_features_4_l.view(-1, 16384))
         # print(features.size())          # torch.Size([batch_size, 2048])
-        pt_features_4_r = self.fc6(features).view(-1, 256, 4, 4, 4) + pt_features_4_l  #直接把特征加进来？
+        pt_features_4_r = self.fc6(features).view(-1, 256, 4, 4, 4) + pt_features_4_l 
         # print(pt_features_4_r.size())   # torch.Size([batch_size, 256, 4, 4, 4])
         pt_features_8_r = self.dconv7(pt_features_4_r) + pt_features_8_l
         # print(pt_features_8_r.size())   # torch.Size([batch_size, 128, 8, 8, 8])
