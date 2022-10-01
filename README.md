@@ -40,7 +40,7 @@ The pretrained models are available as follows:
 ```
 git clone https://github.com/LiuLiuJerry/ShapeNetProcessing.git 
 ```
-Note that this code is partly based on GRNet( https://github.com/hzxie/GRNet )
+Note that this code is partly based on [GRNet](https://github.com/hzxie/GRNet)
 
 #### Install Python Denpendencies
 
