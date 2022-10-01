@@ -1,6 +1,6 @@
 # TouchNet
 
-This repository contains the source code for the paper [End-to-end Surface Reconstruction For Touching Trajectories]
+This repository contains the source code for the paper [End-to-end Surface Reconstruction For Touching Trajectories]()
 
 ![Overview](./images/overview.JPG)
 
@@ -22,17 +22,17 @@ This repository contains the source code for the paper [End-to-end Surface Recon
 
 Our datasets are available below:
 
-- [Mug](https://drive.google.com/file/d/1ri_TmbM3LrkU6TdJB5Rd5gmZSbh-0nNQ/view?usp=sharing)
-- [Airplane]()
-- [Car]()
+- [Mug](https://pan.baidu.com/s/1yx9fyQOgfcAooFAO1uZB0g?pwd=gzuo) (extraction code: gzuo)
+- [Airplane](https://pan.baidu.com/s/1Bzbek9tz-6gdHli3RF7sfA?pwd=ogeq) (extraction code: ogeq)
+- [Car](https://pan.baidu.com/s/17D41cSG3t0j_cjKTojE_nQ?pwd=syef) (extraction code: syef)
 
 ## Pretrained Models
 
 The pretrained models are available as follows:
 
-- [Mug]( ) ( MB)
-- [Airplane]( ) ( MB)
-- [Car]( ) ( MB)
+- [Mug](https://drive.google.com/file/d/1y0ZnV0e5qF0QB9fJabzjtTIor4k3xADw/view?usp=sharing)
+- [Airplane](https://drive.google.com/file/d/1tREmx6kcxJdQJCegzEQk9a6izID4B_Hc/view?usp=sharing)
+- [Car](https://drive.google.com/file/d/1DkSNUXn24nJWRJsDil1IG3aqyTZGvuS3/view?usp=sharing)
 ## Prerequisites
 
 #### Clone the Code Repository
