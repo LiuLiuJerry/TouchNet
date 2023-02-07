@@ -1,0 +1,23 @@
+数据预处理：
+
+1. 将ShapeNet数据集中的数据使用trajectory planning的dataset_prepare_ImplicitNet.py区分为train，test 和val 【代码以上传为准】对顶点位置进行归一化。
+
+
+2. ManifoldPlus is used to generate watertight mesh from shapenet, and thus perform space sampling operation; 运行simplification.sh 批量获取水密数据 【以服务器上的代码为准】
+
+
+3. InsideOutTest： 在2得到的mesh的周围采样 ，并将采样点分为inside、outside和on mesh。 将该c++代码编译生成可执行文件，并在trajectory planning的代码space_sampling-CGAL.py中引用，并作为数据集中的ground truth进行存储 【代码暂时在笔记本中，未上传】。 
+
+space_sampling-CGAL.py中， 如果中途报错，需要用meshlab打开生成的watertight_rdgf.obj文件，手动对模型进行处理，处理包括：remove_degenerate_faces  fill_hole  等
+ 
+
+
+4. 将2生成的水密网格（或者原始网格也可，对探索结果影响不大）输入trajectory planning的run.py，生成触觉轨迹。每个mesh得到4个触觉轨迹【代码以上传为准】。每个轨迹共有2048个点，存为pcd文件。
+
+
+5. 使用XXX代码筛选触觉轨迹，得到最终数据集。
+
+
+6. 以上数据均可以使用plot_pt.py进行可视化验证
+
+
